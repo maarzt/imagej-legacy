@@ -43,10 +43,13 @@ import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.DefaultPolyline;
 import net.imglib2.roi.geom.real.Polyline;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
 import ij.ImagePlus;
 import ij.gui.PolygonRoi;
@@ -63,6 +66,7 @@ public class PolylineRoiConversionTest {
 	private PolygonRoi poly;
 	private Polyline<RealPoint> wrap;
 	private Polyline<RealPoint> dp;
+	private ConvertService convertService;
 
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
@@ -78,6 +82,14 @@ public class PolylineRoiConversionTest {
 		pts.add(new RealPoint(new double[] { 50, -30 }));
 		pts.add(new RealPoint(new double[] { 79, -1 }));
 		dp = new DefaultPolyline(pts);
+
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -164,5 +176,59 @@ public class PolylineRoiConversionTest {
 		assertEquals(-30, wrap.realMin(1), 0);
 		assertEquals(50, wrap.realMax(0), 0);
 		assertEquals(20, wrap.realMax(1), 0);
+	}
+
+	@Test
+	public void testPolylineRoiToPolylineConverter() {
+		final Polyline<?> converted = convertService.convert(poly, Polyline.class);
+
+		assertTrue(converted instanceof PolylineRoiWrapper);
+
+		assertEquals(wrap.vertex(0).getDoublePosition(0), converted.vertex(0)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(0).getDoublePosition(1), converted.vertex(0)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(1).getDoublePosition(0), converted.vertex(1)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(1).getDoublePosition(1), converted.vertex(1)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(2).getDoublePosition(0), converted.vertex(2)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(2).getDoublePosition(1), converted.vertex(2)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(3).getDoublePosition(0), converted.vertex(3)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(3).getDoublePosition(1), converted.vertex(3)
+			.getDoublePosition(1), 0);
+	}
+
+	@Test
+	public void testPolylineRoiToPolylineConverterWithFreeLine() {
+		final PolygonRoi free = new PolygonRoi(new float[] { 1, 2, 2.5f, 3, 3.1f,
+			3.5f, 4, 5, 5.5f, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14.5f, 14, 14.25f,
+			14.4f, 14.3f, 14, 14.5f }, new float[] { 1, 1, 1.25f, 1, 1.5f, 1.5f, 1, 1,
+				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11.4f, 12, 13, 14.5f, 15, 15.25f },
+			Roi.POLYLINE);
+		final Polyline<?> converted = convertService.convert(free, Polyline.class);
+
+		assertTrue(converted instanceof PolylineRoiWrapper);
+
+		assertEquals(25, converted.numVertices());
+	}
+
+	@Test
+	public void testPolylineRoiToPolylineConverterWithWidth() {
+		poly.setStrokeWidth(15.5);
+		final Polyline<?> converted = convertService.convert(poly, Polyline.class);
+
+		assertTrue(converted == null);
+	}
+
+	@Test
+	public void testPolylineRoiToPolylineConverterWithSpline() {
+		poly.fitSpline();
+		final Polyline<?> converted = convertService.convert(poly, Polyline.class);
+
+		assertTrue(converted == null);
 	}
 }
