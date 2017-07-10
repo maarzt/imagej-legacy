@@ -44,10 +44,13 @@ import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.DefaultRealPointCollection;
 import net.imglib2.roi.geom.real.RealPointCollection;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
 import ij.ImagePlus;
 import ij.gui.PointRoi;
@@ -63,6 +66,7 @@ public class PointRoiConversionTest {
 	private PointRoi point;
 	private RealPointCollection<RealLocalizable> rpc;
 	private RealPointCollection<RealLocalizable> wrap;
+	private ConvertService convertService;
 
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
@@ -77,6 +81,14 @@ public class PointRoiConversionTest {
 		c.add(new RealPoint(new double[] { 1, 30 }));
 		rpc = new DefaultRealPointCollection<>(c);
 		wrap = new PointRoiWrapper(point);
+
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -209,4 +221,23 @@ public class PointRoiConversionTest {
 		}
 		assertFalse(iw.hasNext());
 	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testPointRoiToRealPointCollectionConverter() {
+		final RealPointCollection<RealLocalizable> converted = convertService
+			.convert(point, RealPointCollection.class);
+
+		assertTrue(converted instanceof PointRoiWrapper);
+
+		final Iterator<RealLocalizable> ic = converted.points().iterator();
+		final Iterator<RealLocalizable> iw = wrap.points().iterator();
+		while (ic.hasNext()) {
+			final RealLocalizable wrl = iw.next();
+			final RealLocalizable crl = ic.next();
+			assertEquals(wrl.getFloatPosition(0), crl.getFloatPosition(0), 0);
+			assertEquals(wrl.getFloatPosition(1), crl.getFloatPosition(1), 0);
+		}
+	}
+
 }
