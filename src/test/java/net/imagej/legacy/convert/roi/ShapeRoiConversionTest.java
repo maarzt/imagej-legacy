@@ -38,8 +38,11 @@ import static org.junit.Assert.assertTrue;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.RealMaskRealInterval;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
@@ -55,6 +58,7 @@ public class ShapeRoiConversionTest {
 
 	private ShapeRoi shape;
 	private RealMaskRealInterval wrap;
+	private ConvertService convertService;
 
 	@Before
 	public void setup() {
@@ -65,6 +69,14 @@ public class ShapeRoiConversionTest {
 
 		shape = rs.or(os);
 		wrap = new ShapeRoiWrapper(shape);
+
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -92,5 +104,18 @@ public class ShapeRoiConversionTest {
 		// instead of the real bounds. So this is 143 instead of 142.5
 		assertEquals(143, wrap.realMax(0), 0);
 		assertEquals(281, wrap.realMax(1), 0);
+	}
+
+	@Test
+	public void testShapeRoiToMaskRealIntervalConverter() {
+		final RealMaskRealInterval converted = convertService.convert(shape,
+			RealMaskRealInterval.class);
+
+		assertTrue(converted instanceof ShapeRoiWrapper);
+
+		assertEquals(wrap.realMin(0), converted.realMin(0), 0);
+		assertEquals(wrap.realMin(1), converted.realMin(1), 0);
+		assertEquals(wrap.realMax(0), converted.realMax(0), 0);
+		assertEquals(wrap.realMax(1), converted.realMax(1), 0);
 	}
 }
