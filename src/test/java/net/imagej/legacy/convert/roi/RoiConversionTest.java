@@ -40,10 +40,13 @@ import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.Box;
 import net.imglib2.roi.geom.real.ClosedBox;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
 import ij.gui.Roi;
 
@@ -60,6 +63,7 @@ public class RoiConversionTest {
 	private Box<RealPoint> b;
 	private RealLocalizable inside;
 	private RealLocalizable outside;
+	private ConvertService convertService;
 
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
@@ -71,6 +75,14 @@ public class RoiConversionTest {
 		b = new ClosedBox(new double[] { 1, 13 }, new double[] { 8, 17 });
 		inside = new RealPoint(new double[] { 6.25, 15 });
 		outside = new RealPoint(new double[] { -2, 12.5 });
+
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -166,5 +178,19 @@ public class RoiConversionTest {
 		assertEquals(9.5, wrap.realMin(1), 0);
 		assertEquals(4.5, wrap.realMax(0), 0);
 		assertEquals(13.5, wrap.realMax(1), 0);
+	}
+
+	@Test
+	public void testRoiToBoxConverter() {
+		final Box<?> converted = convertService.convert(rect, Box.class);
+
+		assertTrue(converted instanceof RoiWrapper);
+
+		assertEquals(wrap.center().getDoublePosition(0), converted.center()
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.center().getDoublePosition(1), converted.center()
+			.getDoublePosition(1), 0);
+		assertEquals(converted.sideLength(0), converted.sideLength(0), 0);
+		assertEquals(converted.sideLength(1), converted.sideLength(1), 0);
 	}
 }
