@@ -40,10 +40,13 @@ import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.DefaultPolygon2D;
 import net.imglib2.roi.geom.real.Polygon2D;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
 import ij.ImagePlus;
 import ij.gui.PolygonRoi;
@@ -62,6 +65,7 @@ public class PolygonRoiConversionTest {
 	private Polygon2D<RealPoint> dp;
 	private RealLocalizable inside;
 	private RealLocalizable outside;
+	private ConvertService convertService;
 
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
@@ -76,6 +80,14 @@ public class PolygonRoiConversionTest {
 
 		inside = new RealPoint(new double[] { 151, 225 });
 		outside = new RealPoint(new double[] { 100, 100 });
+
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -160,5 +172,57 @@ public class PolygonRoiConversionTest {
 		assertEquals(100, wrap.realMin(1), 0);
 		assertEquals(199, wrap.realMax(0), 0);
 		assertEquals(200, wrap.realMax(1), 0);
+	}
+
+	@Test
+	public void testPolygonRoiToPolygon2DConverter() {
+		final Polygon2D<?> converted = convertService.convert(poly,
+			Polygon2D.class);
+
+		assertTrue(converted instanceof PolygonRoiWrapper);
+
+		assertEquals(5, converted.numVertices());
+		assertEquals(wrap.vertex(0).getDoublePosition(0), converted.vertex(0)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(0).getDoublePosition(1), converted.vertex(0)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(1).getDoublePosition(0), converted.vertex(1)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(1).getDoublePosition(1), converted.vertex(1)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(2).getDoublePosition(0), converted.vertex(2)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(2).getDoublePosition(1), converted.vertex(2)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(3).getDoublePosition(0), converted.vertex(3)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(3).getDoublePosition(1), converted.vertex(3)
+			.getDoublePosition(1), 0);
+		assertEquals(wrap.vertex(4).getDoublePosition(0), converted.vertex(4)
+			.getDoublePosition(0), 0);
+		assertEquals(wrap.vertex(4).getDoublePosition(1), converted.vertex(4)
+			.getDoublePosition(1), 0);
+	}
+
+	@Test
+	public void testPolygonRoiToPolygon2DConverterFreeRoi() {
+		final PolygonRoi free = new PolygonRoi(new float[] { 1, 1.2f, 1, 1.2f, 1.3f,
+			1.5f, 1, 2, 3.5f, 4, 6.1f, 7, 7, 7, 7.5f, 7.1f }, new float[] { 1, 5, 6,
+				6.5f, 7, 7.25f, 8, 8.5f, 8.4f, 8, 8, 8.25f, 7, 6, 5, 4 }, Roi.FREEROI);
+		final Polygon2D<?> converted = convertService.convert(free,
+			Polygon2D.class);
+
+		assertTrue(converted instanceof PolygonRoiWrapper);
+
+		assertEquals(16, converted.numVertices());
+	}
+
+	@Test
+	public void testPolygonRoiToPolygon2DConverterWithSpline() {
+		poly.fitSpline();
+		final Polygon2D<?> converted = convertService.convert(poly,
+			Polygon2D.class);
+
+		assertTrue(converted == null);
 	}
 }
