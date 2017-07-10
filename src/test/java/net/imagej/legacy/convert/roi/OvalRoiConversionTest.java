@@ -40,10 +40,13 @@ import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.ClosedEllipsoid;
 import net.imglib2.roi.geom.real.Ellipsoid;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
 import ij.gui.OvalRoi;
 
@@ -61,6 +64,7 @@ public class OvalRoiConversionTest {
 	private RealLocalizable inside;
 	private RealLocalizable onBoundary;
 	private RealLocalizable outside;
+	private ConvertService convertService;
 
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
@@ -74,6 +78,14 @@ public class OvalRoiConversionTest {
 		inside = new RealPoint(new double[] { 12.125, 23 });
 		onBoundary = new RealPoint(new double[] { 17, 24 });
 		outside = new RealPoint(new double[] { 101, 41.125 });
+
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -160,5 +172,13 @@ public class OvalRoiConversionTest {
 			.getDoublePosition(0), 0);
 		assertEquals(oval.getYBase() + oval.getFloatHeight() / 2, wrap.center()
 			.getDoublePosition(1), 0);
+	}
+
+	@Test
+	public void testOvalRoiToEllipsoidConverter() {
+		final Ellipsoid<?> converted = convertService.convert(oval,
+			Ellipsoid.class);
+
+		assertTrue(converted instanceof OvalRoiWrapper);
 	}
 }
