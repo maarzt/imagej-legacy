@@ -45,7 +45,7 @@ import ij.gui.OvalRoi;
  *
  * @author Alison Walter
  */
-public class OvalRoiWrapper implements IJRoiWrapper<OvalRoi>,
+public class OvalRoiWrapper implements IJRealRoiWrapper<OvalRoi>,
 	Ellipsoid<RealPoint>
 {
 

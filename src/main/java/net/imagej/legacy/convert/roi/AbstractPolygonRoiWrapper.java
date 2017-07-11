@@ -50,7 +50,7 @@ import ij.gui.Roi;
  * @author Alison Walter
  */
 public abstract class AbstractPolygonRoiWrapper implements
-	IJRoiWrapper<PolygonRoi>
+	IJRealRoiWrapper<PolygonRoi>
 {
 
 	private final PolygonRoi poly;

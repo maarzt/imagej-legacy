@@ -31,16 +31,16 @@
 
 package net.imagej.legacy.convert.roi;
 
-import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.MaskPredicate;
 
 import ij.gui.Roi;
 
 /**
- * Wraps an ImageJ 1.x {@link Roi} as a {@link RealMaskRealInterval}.
+ * Wraps an ImageJ 1.x {@link Roi} as a {@link MaskPredicate}.
  *
  * @author Alison Walter
  */
-public interface IJRoiWrapper<R extends Roi> extends RealMaskRealInterval {
+public interface IJRoiWrapper<R extends Roi, L> extends MaskPredicate<L> {
 
 	/**
 	 * Returns the backing ImageJ 1.x {@link Roi}.

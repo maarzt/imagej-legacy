@@ -49,7 +49,7 @@ import ij.process.FloatPolygon;
  *
  * @author Alison Walter
  */
-public class PointRoiWrapper implements IJRoiWrapper<PointRoi>,
+public class PointRoiWrapper implements IJRealRoiWrapper<PointRoi>,
 	RealPointCollection<RealLocalizable>
 {
 

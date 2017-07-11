@@ -45,7 +45,7 @@ import ij.gui.Roi;
  *
  * @author Alison Walter
  */
-public class RoiWrapper implements IJRoiWrapper<Roi>, Box<RealPoint> {
+public class RoiWrapper implements IJRealRoiWrapper<Roi>, Box<RealPoint> {
 
 	private final Roi rect;
 

@@ -34,48 +34,16 @@ package net.imagej.legacy.convert.roi;
 import net.imglib2.RealLocalizable;
 import net.imglib2.roi.RealMaskRealInterval;
 
-import ij.gui.ShapeRoi;
+import ij.gui.Roi;
 
 /**
- * Wraps an ImageJ 1.x {@link ShapeRoi} as an ImgLib2
- * {@link RealMaskRealInterval}.
+ * Wraps ImageJ 1.x {@link Roi}s as ImgLib2 {@link RealMaskRealInterval}
  *
  * @author Alison Walter
+ * @param <R> the type of the Roi being wrapped
  */
-public class ShapeRoiWrapper implements IJRealRoiWrapper<ShapeRoi> {
-
-	private final ShapeRoi shape;
-
-	public ShapeRoiWrapper(final ShapeRoi shape) {
-		this.shape = shape;
-	}
-
-	@Override
-	public boolean test(final RealLocalizable t) {
-		// The backing shape is stored with its upper left corner at (0, 0)
-		final double x = t.getDoublePosition(0) - shape.getXBase();
-		final double y = t.getDoublePosition(1) - shape.getYBase();
-		return shape.getShape().contains(x, y);
-	}
-
-	@Override
-	public double realMin(final int d) {
-		if (d != 0 && d != 1) throw new IllegalArgumentException(
-			"Invalid dimension " + d);
-		return d == 0 ? shape.getXBase() : shape.getYBase();
-	}
-
-	@Override
-	public double realMax(final int d) {
-		if (d != 0 && d != 1) throw new IllegalArgumentException(
-			"Invalid dimension " + d);
-		return d == 0 ? shape.getXBase() + shape.getFloatWidth() : shape
-			.getYBase() + shape.getFloatHeight();
-	}
-
-	@Override
-	public ShapeRoi getRoi() {
-		return shape;
-	}
+public interface IJRealRoiWrapper<R extends Roi> extends
+	IJRoiWrapper<R, RealLocalizable>, RealMaskRealInterval
+{
 
 }

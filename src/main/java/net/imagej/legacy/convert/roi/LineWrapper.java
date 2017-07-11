@@ -46,7 +46,9 @@ import net.imglib2.roi.geom.real.Line;
  *
  * @author Alison Walter
  */
-public class LineWrapper implements IJRoiWrapper<ij.gui.Line>, Line<RealPoint> {
+public class LineWrapper implements IJRealRoiWrapper<ij.gui.Line>,
+	Line<RealPoint>
+{
 
 	private final ij.gui.Line line;
 
