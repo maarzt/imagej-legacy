@@ -57,7 +57,7 @@ import ij.gui.Roi;
 
 /**
  * Tests converting {@link PolygonRoi} to {@link Polyline} and the corresponding
- * {@link PolylineRoiWrapper}.
+ * wrappers.
  *
  * @author Alison Walter
  */
@@ -65,6 +65,10 @@ public class PolylineRoiConversionTest {
 
 	private PolygonRoi poly;
 	private Polyline<RealPoint> wrap;
+	private PolygonRoi free;
+	private Polyline<RealPoint> freeWrap;
+	private PolygonRoi angle;
+	private Polyline<RealPoint> angleWrap;
 	private Polyline<RealPoint> dp;
 	private ConvertService convertService;
 
@@ -82,6 +86,34 @@ public class PolylineRoiConversionTest {
 		pts.add(new RealPoint(new double[] { 50, -30 }));
 		pts.add(new RealPoint(new double[] { 79, -1 }));
 		dp = new DefaultPolyline(pts);
+
+		final int[] xf = new int[] { 143, 136, 128, 126, 124, 123, 122, 121, 120,
+			118, 118, 117, 116, 116, 116, 115, 115, 115, 115, 115, 115, 115, 115, 116,
+			116, 117, 117, 117, 118, 119, 119, 119, 120, 120, 121, 122, 122, 123, 124,
+			125, 126, 127, 128, 129, 130, 131, 131, 132, 133, 132, 133, 135, 136, 137,
+			138, 140, 141, 142, 143, 144, 144, 146, 147, 147, 148, 149, 150, 152, 153,
+			153, 154, 156, 157, 158, 158, 158, 158, 158, 158, 158, 157, 157, 156, 155,
+			155, 154, 154, 153, 153, 152, 151, 149, 149, 148, 147, 146, 146, 145, 144,
+			143, 142, 141, 140, 140, 140, 140, 141, 141, 142, 143, 144, 144, 145, 146,
+			147, 149, 150, 151, 152, 152, 153, 154, 155, 156, 157, 158, 159, 161, 162,
+			166, 168, 169, 170, 171, 172, 172, 174, 175, 175, 176, 177, 177, 179, 180,
+			180, 181, 182, 183, 183 };
+		final int[] yf = new int[] { 37, 37, 34, 34, 34, 34, 34, 34, 35, 39, 40, 42,
+			42, 44, 45, 45, 46, 47, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61,
+			62, 63, 63, 64, 65, 65, 66, 67, 67, 68, 69, 69, 70, 71, 71, 71, 72, 72,
+			72, 72, 72, 72, 72, 72, 72, 73, 73, 73, 73, 73, 74, 74, 74, 75, 75, 76,
+			76, 76, 76, 77, 78, 79, 80, 81, 82, 83, 85, 86, 87, 88, 89, 90, 91, 92,
+			94, 95, 96, 96, 97, 98, 98, 99, 100, 100, 100, 101, 102, 102, 102, 102,
+			103, 103, 103, 104, 105, 106, 106, 107, 107, 108, 108, 109, 109, 109, 109,
+			110, 110, 110, 110, 111, 111, 111, 111, 111, 111, 111, 111, 111, 111, 113,
+			113, 114, 114, 114, 115, 116, 118, 119, 120, 120, 121, 122, 123, 124, 125,
+			125, 126, 128, 129 };
+		free = new PolygonRoi(xf, yf, xf.length, Roi.FREELINE);
+		freeWrap = new UnmodifiablePolylineRoiWrapper(free);
+
+		angle = new PolygonRoi(new int[] { 166, 80, 163 }, new int[] { 79, 122,
+			126 }, 3, Roi.ANGLE);
+		angleWrap = new UnmodifiablePolylineRoiWrapper(angle);
 
 		final Context context = new Context(ConvertService.class);
 		convertService = context.service(ConvertService.class);
@@ -179,6 +211,73 @@ public class PolylineRoiConversionTest {
 	}
 
 	@Test
+	public void testUnmodifiablePolylineRoiWrapperFreelineGetters() {
+		final RealPoint oneHundredOne = freeWrap.vertex(101);
+		assertEquals(141, oneHundredOne.getDoublePosition(0), 0);
+		assertEquals(103, oneHundredOne.getDoublePosition(1), 0);
+
+		assertEquals(free.getNCoordinates(), freeWrap.numVertices());
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperFreelineTest() {
+		assertTrue(freeWrap.test(new RealPoint(new double[] { 135, 72 })));
+		assertTrue(freeWrap.test(new RealPoint(new double[] { 164, 112 })));
+		assertFalse(freeWrap.test(new RealPoint(new double[] { 120, 167 })));
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperFreelineRemoveVertex() {
+		exception.expect(UnsupportedOperationException.class);
+		freeWrap.removeVertex(112);
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperFreelineBounds() {
+		assertEquals(115, freeWrap.realMin(0), 0);
+		assertEquals(34, freeWrap.realMin(1), 0);
+		assertEquals(183, freeWrap.realMax(0), 0);
+		assertEquals(129, freeWrap.realMax(1), 0);
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperAngleGetters() {
+		final RealPoint one = angleWrap.vertex(0);
+		final RealPoint two = angleWrap.vertex(1);
+		final RealPoint three = angleWrap.vertex(2);
+
+		assertEquals(166, one.getDoublePosition(0), 0);
+		assertEquals(79, one.getDoublePosition(1), 0);
+		assertEquals(80, two.getDoublePosition(0), 0);
+		assertEquals(122, two.getDoublePosition(1), 0);
+		assertEquals(163, three.getDoublePosition(0), 0);
+		assertEquals(126, three.getDoublePosition(1), 0);
+
+		assertEquals(angle.getNCoordinates(), angleWrap.numVertices());
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperAngleTest() {
+		assertTrue(angleWrap.test(new RealPoint(new double[] { 150, 87 })));
+		assertTrue(angleWrap.test(new RealPoint(new double[] { 121.5, 124 })));
+		assertFalse(angleWrap.test(new RealPoint(new double[] { 59.25, 121 })));
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperAngleRemoveVertex() {
+		exception.expect(UnsupportedOperationException.class);
+		angleWrap.removeVertex(0);
+	}
+
+	@Test
+	public void testUnmodifiablePolylineRoiWrapperAngleBounds() {
+		assertEquals(80, angleWrap.realMin(0), 0);
+		assertEquals(79, angleWrap.realMin(1), 0);
+		assertEquals(166, angleWrap.realMax(0), 0);
+		assertEquals(126, angleWrap.realMax(1), 0);
+	}
+
+	@Test
 	public void testPolylineRoiToPolylineConverter() {
 		final Polyline<?> converted = convertService.convert(poly, Polyline.class);
 
@@ -204,11 +303,6 @@ public class PolylineRoiConversionTest {
 
 	@Test
 	public void testPolylineRoiToPolylineConverterWithFreeLine() {
-		final PolygonRoi free = new PolygonRoi(new float[] { 1, 2, 2.5f, 3, 3.1f,
-			3.5f, 4, 5, 5.5f, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14.5f, 14, 14.25f,
-			14.4f, 14.3f, 14, 14.5f }, new float[] { 1, 1, 1.25f, 1, 1.5f, 1.5f, 1, 1,
-				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11.4f, 12, 13, 14.5f, 15, 15.25f },
-			Roi.FREELINE);
 		final Polyline<?> converted = convertService.convert(free, Polyline.class);
 
 		assertTrue(converted == null);

@@ -54,7 +54,7 @@ import ij.gui.Roi;
 
 /**
  * Tests converting {@link PolygonRoi} to {@link Polygon2D} and the
- * corresponding {@link PolygonRoiWrapper}.
+ * corresponding wrappers.
  *
  * @author Alison Walter
  */
@@ -62,6 +62,10 @@ public class PolygonRoiConversionTest {
 
 	private PolygonRoi poly;
 	private Polygon2D<RealPoint> wrap;
+	private PolygonRoi free;
+	private Polygon2D<RealPoint> freeWrap;
+	private PolygonRoi traced;
+	private Polygon2D<RealPoint> tracedWrap;
 	private Polygon2D<RealPoint> dp;
 	private RealLocalizable inside;
 	private RealLocalizable outside;
@@ -77,6 +81,22 @@ public class PolygonRoiConversionTest {
 		wrap = new PolygonRoiWrapper(poly);
 		dp = new DefaultPolygon2D(new double[] { 100.5, 100.5, 150, 199, 199 },
 			new double[] { 100, 200, 250.25, 200, 100 });
+
+		final int[] x = new int[] { 21, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6,
+			6, 5, 5, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19, 19,
+			20, 21, 22, 22, 23, 23, 24, 24, 24, 25, 25, 26, 26, 27, 27, 27, 27 };
+		final int[] y = new int[] { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2,
+			3, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+			21, 21, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
+			23, 22, 21, 20, 18, 17, 16, 15, 14, 13, 12, 11, 9, 8, 8, 7, 7, 6, 5, 4 };
+		free = new PolygonRoi(x, y, x.length, Roi.FREEROI);
+		freeWrap = new UnmodifiablePolygonRoiWrapper(free);
+
+		final int[] xt = new int[] { 8, 7, 7, 0, 0, 1, 1, 8 };
+		final int[] yt = new int[] { 4, 4, 5, 5, 2, 2, 0, 0 };
+		traced = new PolygonRoi(xt, yt, xt.length, Roi.TRACED_ROI);
+		tracedWrap = new UnmodifiablePolygonRoiWrapper(traced);
 
 		inside = new RealPoint(new double[] { 151, 225 });
 		outside = new RealPoint(new double[] { 100, 100 });
@@ -155,6 +175,66 @@ public class PolygonRoiConversionTest {
 	}
 
 	@Test
+	public void testUnmodifiablePolygonRoiWrapperFreeRoiGetters() {
+		final RealPoint twentytwo = freeWrap.vertex(22);
+		assertEquals(2, twentytwo.getDoublePosition(0), 0);
+		assertEquals(7, twentytwo.getDoublePosition(1), 0);
+
+		assertEquals(free.getNCoordinates(), freeWrap.numVertices());
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperFreeRoiRemoveVertex() {
+		exception.expect(UnsupportedOperationException.class);
+		freeWrap.removeVertex(72);
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperFreeRoiTest() {
+		assertTrue(freeWrap.test(new RealPoint(new double[] { 16.25, 13 })));
+		assertTrue(freeWrap.test(new RealPoint(new double[] { 15, 1.125 })));
+		assertFalse(freeWrap.test(new RealPoint(new double[] { 27.25, 8 })));
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperFreeRoiBounds() {
+		assertEquals(0, freeWrap.realMin(0), 0);
+		assertEquals(0, freeWrap.realMin(1), 0);
+		assertEquals(27, freeWrap.realMax(0), 0);
+		assertEquals(23, freeWrap.realMax(1), 0);
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperTracedRoiGetters() {
+		final RealPoint three = tracedWrap.vertex(3);
+		assertEquals(0, three.getDoublePosition(0), 0);
+		assertEquals(5, three.getDoublePosition(1), 0);
+
+		assertEquals(traced.getNCoordinates(), tracedWrap.numVertices());
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperTracedRoiRemoveVertex() {
+		exception.expect(UnsupportedOperationException.class);
+		tracedWrap.removeVertex(1);
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperTracedRoiTest() {
+		assertTrue(tracedWrap.test(new RealPoint(new double[] { 6.5, 1.125 })));
+		assertTrue(tracedWrap.test(new RealPoint(new double[] { 1.5, 4 })));
+		assertFalse(tracedWrap.test(new RealPoint(new double[] { 8, 5 })));
+	}
+
+	@Test
+	public void testUnmodifiablePolygonRoiWrapperTracedRoiBounds() {
+		assertEquals(0, tracedWrap.realMin(0), 0);
+		assertEquals(0, tracedWrap.realMin(1), 0);
+		assertEquals(8, tracedWrap.realMax(0), 0);
+		assertEquals(5, tracedWrap.realMax(1), 0);
+	}
+
+	@Test
 	public void testUpdatedAfterPolygonRoiWrapperModified() {
 		final ImagePlus i = new ImagePlus("http://imagej.net/images/blobs.gif");
 		i.setRoi(poly);
@@ -206,12 +286,8 @@ public class PolygonRoiConversionTest {
 
 	@Test
 	public void testPolygonRoiToPolygon2DConverterFreeRoi() {
-		final PolygonRoi free = new PolygonRoi(new float[] { 1, 1.2f, 1, 1.2f, 1.3f,
-			1.5f, 1, 2, 3.5f, 4, 6.1f, 7, 7, 7, 7.5f, 7.1f }, new float[] { 1, 5, 6,
-				6.5f, 7, 7.25f, 8, 8.5f, 8.4f, 8, 8, 8.25f, 7, 6, 5, 4 }, Roi.FREEROI);
 		final Polygon2D<?> converted = convertService.convert(free,
 			Polygon2D.class);
-
 		assertTrue(converted == null);
 	}
 
