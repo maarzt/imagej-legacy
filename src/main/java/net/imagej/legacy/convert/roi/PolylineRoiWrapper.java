@@ -37,6 +37,7 @@ import net.imglib2.roi.geom.GeomMaths;
 import net.imglib2.roi.geom.real.Polyline;
 import net.imglib2.util.Intervals;
 
+import ij.ImagePlus;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 
@@ -132,5 +133,21 @@ public class PolylineRoiWrapper extends AbstractPolygonRoiWrapper implements
 	@Override
 	public void addVertex(final int index, final RealLocalizable vertex) {
 		throw new UnsupportedOperationException("addVertex");
+	}
+
+	/**
+	 * If the wrapped {@link PolygonRoi} is not associated with an
+	 * {@link ImagePlus}, then this method will always throw an
+	 * {@code UnsupportedOperationException}. Otherwise, the vertex will be
+	 * removed provided the index is valid.
+	 */
+	@Override
+	public void removeVertex(final int index) {
+		if (getRoi().getImage() != null) {
+			final double x = getRoi().getFloatPolygon().xpoints[index];
+			final double y = getRoi().getFloatPolygon().ypoints[index];
+			getRoi().deleteHandle(x, y);
+		}
+		else throw new UnsupportedOperationException("removeVertex");
 	}
 }

@@ -37,6 +37,7 @@ import net.imglib2.roi.geom.GeomMaths;
 import net.imglib2.roi.geom.real.Polygon2D;
 
 import gnu.trove.list.array.TDoubleArrayList;
+import ij.ImagePlus;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 
@@ -104,18 +105,6 @@ public class PolygonRoiWrapper extends AbstractPolygonRoiWrapper implements
 	}
 
 	/**
-	 * This will <strong>always</strong> throw an
-	 * {@code UnsupportedOperationException}.
-	 *
-	 * @throws UnsupportedOperationException cannot add a new vertex to the
-	 *           underlying {@link PolygonRoi}
-	 */
-	@Override
-	public void addVertex(final int index, final double[] vertex) {
-		throw new UnsupportedOperationException("addVertex");
-	}
-
-	/**
 	 * {@inheritDoc}
 	 * <p>
 	 * Since {@link PolygonRoi#contains(int, int)} uses the "pnpoly" algorithm for
@@ -138,4 +127,33 @@ public class PolygonRoiWrapper extends AbstractPolygonRoiWrapper implements
 
 		return GeomMaths.pnpoly(x, y, t);
 	}
+
+	/**
+	 * This will <strong>always</strong> throw an
+	 * {@code UnsupportedOperationException}.
+	 *
+	 * @throws UnsupportedOperationException cannot add a new vertex to the
+	 *           underlying {@link PolygonRoi}
+	 */
+	@Override
+	public void addVertex(final int index, final double[] vertex) {
+		throw new UnsupportedOperationException("addVertex");
+	}
+
+	/**
+	 * If the wrapped {@link PolygonRoi} is not associated with an
+	 * {@link ImagePlus}, then this method will always throw an
+	 * {@code UnsupportedOperationException}. Otherwise, the vertex will be
+	 * removed provided the index is valid.
+	 */
+	@Override
+	public void removeVertex(final int index) {
+		if (getRoi().getImage() != null) {
+			final double x = getRoi().getFloatPolygon().xpoints[index];
+			final double y = getRoi().getFloatPolygon().ypoints[index];
+			getRoi().deleteHandle(x, y);
+		}
+		else throw new UnsupportedOperationException("removeVertex");
+	}
+
 }

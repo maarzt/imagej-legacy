@@ -39,7 +39,6 @@ import net.imglib2.roi.Mask;
 import net.imglib2.roi.geom.real.Polygon2D;
 import net.imglib2.roi.geom.real.Polyline;
 
-import ij.ImagePlus;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 
@@ -152,18 +151,15 @@ public abstract class AbstractPolygonRoiWrapper implements
 	}
 
 	/**
-	 * If the wrapped {@link PolygonRoi} is not associated with an
-	 * {@link ImagePlus}, then this method will always throw an
-	 * {@code UnsupportedOperationException}. Otherwise, the vertex will be
-	 * removed provided the index is valid.
+	 * This will <strong>always</strong> throw an
+	 * {@code UnsupportedOperationException}.
+	 *
+	 * @throws UnsupportedOperationException cannot modify the position of one of
+	 *           the vertices of the underlying {@link PolygonRoi}
 	 */
+	@SuppressWarnings("unused")
 	public void removeVertex(final int index) {
-		if (poly.getImage() != null) {
-			final double x = poly.getFloatPolygon().xpoints[index];
-			final double y = poly.getFloatPolygon().ypoints[index];
-			poly.deleteHandle(x, y);
-		}
-		else throw new UnsupportedOperationException("removeVertex");
+		throw new UnsupportedOperationException("removeVertex");
 	}
 
 	@Override
