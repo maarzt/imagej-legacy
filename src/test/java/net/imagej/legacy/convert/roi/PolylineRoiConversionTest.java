@@ -208,12 +208,10 @@ public class PolylineRoiConversionTest {
 			3.5f, 4, 5, 5.5f, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14.5f, 14, 14.25f,
 			14.4f, 14.3f, 14, 14.5f }, new float[] { 1, 1, 1.25f, 1, 1.5f, 1.5f, 1, 1,
 				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11.4f, 12, 13, 14.5f, 15, 15.25f },
-			Roi.POLYLINE);
+			Roi.FREELINE);
 		final Polyline<?> converted = convertService.convert(free, Polyline.class);
 
-		assertTrue(converted instanceof PolylineRoiWrapper);
-
-		assertEquals(25, converted.numVertices());
+		assertTrue(converted == null);
 	}
 
 	@Test

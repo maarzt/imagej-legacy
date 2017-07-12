@@ -60,8 +60,8 @@ public class PolylineRoiToPolylineConverter extends
 	public boolean canConvert(final ConversionRequest request) {
 		if (super.canConvert(request)) {
 			final PolygonRoi src = (PolygonRoi) request.sourceObject();
-			return (src.getType() == Roi.POLYLINE || src.getType() == Roi.FREELINE) &&
-				src.getStrokeWidth() == 0 && !src.isSplineFit();
+			return src.getType() == Roi.POLYLINE && src.getStrokeWidth() == 0 && !src
+				.isSplineFit();
 		}
 		return false;
 	}
@@ -70,8 +70,8 @@ public class PolylineRoiToPolylineConverter extends
 	public boolean canConvert(final Object src, final Type dest) {
 		if (super.canConvert(src, dest)) {
 			final PolygonRoi p = (PolygonRoi) src;
-			return (p.getType() == Roi.POLYLINE || p.getType() == Roi.FREELINE) && p
-				.getStrokeWidth() == 0 && !p.isSplineFit();
+			return p.getType() == Roi.POLYLINE && p.getStrokeWidth() == 0 && !p
+				.isSplineFit();
 		}
 		return false;
 	}
@@ -80,8 +80,8 @@ public class PolylineRoiToPolylineConverter extends
 	public boolean canConvert(final Object src, final Class<?> dest) {
 		if (super.canConvert(src, dest)) {
 			final PolygonRoi p = (PolygonRoi) src;
-			return (p.getType() == Roi.POLYLINE || p.getType() == Roi.FREELINE) && p
-				.getStrokeWidth() == 0 && !p.isSplineFit();
+			return p.getType() == Roi.POLYLINE && p.getStrokeWidth() == 0 && !p
+				.isSplineFit();
 		}
 		return false;
 	}

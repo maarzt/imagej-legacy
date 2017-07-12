@@ -97,9 +97,8 @@ public class PolylineRoiWrapper extends AbstractPolygonRoiWrapper implements
 	 */
 	public PolylineRoiWrapper(final PolygonRoi poly) {
 		super(poly);
-		if (poly.getType() != Roi.POLYLINE && poly.getType() != Roi.FREELINE)
-			throw new IllegalArgumentException("Cannot wrap " + poly
-				.getTypeAsString() + " as Polyline");
+		if (poly.getType() != Roi.POLYLINE) throw new IllegalArgumentException(
+			"Cannot wrap " + poly.getTypeAsString() + " as Polyline");
 		if (poly.getStrokeWidth() != 0) throw new IllegalArgumentException(
 			"Cannot wrap polylines with non-zero width");
 		if (poly.isSplineFit()) throw new IllegalArgumentException("Cannot wrap " +

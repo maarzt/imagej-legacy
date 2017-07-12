@@ -60,8 +60,7 @@ public class PolygonRoiToPolygon2DConverter extends
 	public boolean canConvert(final ConversionRequest request) {
 		if (super.canConvert(request)) {
 			final PolygonRoi src = (PolygonRoi) request.sourceObject();
-			return (src.getType() == Roi.POLYGON || src.getType() == Roi.FREEROI) &&
-				!src.isSplineFit();
+			return src.getType() == Roi.POLYGON && !src.isSplineFit();
 		}
 		return false;
 	}
@@ -70,8 +69,7 @@ public class PolygonRoiToPolygon2DConverter extends
 	public boolean canConvert(final Object src, final Type dest) {
 		if (super.canConvert(src, dest)) {
 			final PolygonRoi p = (PolygonRoi) src;
-			return (p.getType() == Roi.POLYGON || p.getType() == Roi.FREEROI) && !p
-				.isSplineFit();
+			return p.getType() == Roi.POLYGON && !p.isSplineFit();
 		}
 		return false;
 	}
@@ -80,8 +78,7 @@ public class PolygonRoiToPolygon2DConverter extends
 	public boolean canConvert(final Object src, final Class<?> dest) {
 		if (super.canConvert(src, dest)) {
 			final PolygonRoi p = (PolygonRoi) src;
-			return (p.getType() == Roi.POLYGON || p.getType() == Roi.FREEROI) && !p
-				.isSplineFit();
+			return p.getType() == Roi.POLYGON && !p.isSplineFit();
 		}
 		return false;
 	}

@@ -97,9 +97,8 @@ public class PolygonRoiWrapper extends AbstractPolygonRoiWrapper implements
 	 */
 	public PolygonRoiWrapper(final PolygonRoi poly) {
 		super(poly);
-		if (poly.getType() != Roi.POLYGON && poly.getType() != Roi.FREEROI)
-			throw new IllegalArgumentException("Cannot wrap " + poly
-				.getTypeAsString() + " as Polygon2D");
+		if (poly.getType() != Roi.POLYGON) throw new IllegalArgumentException(
+			"Cannot wrap " + poly.getTypeAsString() + " as Polygon2D");
 		if (poly.isSplineFit()) throw new IllegalArgumentException("Cannot wrap " +
 			"spline fitted polygons");
 	}

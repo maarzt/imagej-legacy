@@ -212,9 +212,7 @@ public class PolygonRoiConversionTest {
 		final Polygon2D<?> converted = convertService.convert(free,
 			Polygon2D.class);
 
-		assertTrue(converted instanceof PolygonRoiWrapper);
-
-		assertEquals(16, converted.numVertices());
+		assertTrue(converted == null);
 	}
 
 	@Test
