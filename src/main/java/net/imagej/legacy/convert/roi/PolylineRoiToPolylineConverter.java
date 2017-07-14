@@ -46,8 +46,13 @@ import ij.gui.Roi;
 
 /**
  * Converts an ImageJ 1.x {@link PolygonRoi} to an ImgLib2 {@link Polyline}.
- * This is only intended to convert ImageJ 1.x {@link PolygonRoi}s of type
- * POLYLINE which are not spline fit and with a stroke width of zero.
+ * This is only intended to convert ImageJ 1.x {@link PolygonRoi}s with zero
+ * width that are not spline fit and of type:
+ * <ul>
+ * <li>{@link Roi#POLYLINE}</li>
+ * <li>{@link Roi#FREELINE}</li>
+ * <li>{@link Roi#ANGLE}</li>
+ * </ul>
  *
  * @author Alison Walter
  */
@@ -58,31 +63,20 @@ public class PolylineRoiToPolylineConverter extends
 
 	@Override
 	public boolean canConvert(final ConversionRequest request) {
-		if (super.canConvert(request)) {
-			final PolygonRoi src = (PolygonRoi) request.sourceObject();
-			return src.getType() == Roi.POLYLINE && src.getStrokeWidth() == 0 && !src
-				.isSplineFit();
-		}
+		if (super.canConvert(request)) return supportedType((PolygonRoi) request
+			.sourceObject());
 		return false;
 	}
 
 	@Override
 	public boolean canConvert(final Object src, final Type dest) {
-		if (super.canConvert(src, dest)) {
-			final PolygonRoi p = (PolygonRoi) src;
-			return p.getType() == Roi.POLYLINE && p.getStrokeWidth() == 0 && !p
-				.isSplineFit();
-		}
+		if (super.canConvert(src, dest)) return supportedType((PolygonRoi) src);
 		return false;
 	}
 
 	@Override
 	public boolean canConvert(final Object src, final Class<?> dest) {
-		if (super.canConvert(src, dest)) {
-			final PolygonRoi p = (PolygonRoi) src;
-			return p.getType() == Roi.POLYLINE && p.getStrokeWidth() == 0 && !p
-				.isSplineFit();
-		}
+		if (super.canConvert(src, dest)) return supportedType((PolygonRoi) src);
 		return false;
 	}
 
@@ -91,7 +85,9 @@ public class PolylineRoiToPolylineConverter extends
 	public <T> T convert(final Object src, final Class<T> dest) {
 		if (!(src instanceof PolygonRoi)) throw new IllegalArgumentException(
 			"Cannot convert " + src.getClass().getSimpleName() + " to Polyline");
-		return (T) new PolylineRoiWrapper((PolygonRoi) src);
+		if (((PolygonRoi) src).getType() == Roi.POLYLINE)
+			return (T) new PolylineRoiWrapper((PolygonRoi) src);
+		return (T) new UnmodifiablePolylineRoiWrapper((PolygonRoi) src);
 	}
 
 	@Override
@@ -103,6 +99,14 @@ public class PolylineRoiToPolylineConverter extends
 	@Override
 	public Class<PolygonRoi> getInputType() {
 		return PolygonRoi.class;
+	}
+
+	// -- Helper methods --
+
+	private boolean supportedType(final PolygonRoi p) {
+		final boolean supportedType = p.getType() == Roi.POLYLINE || p
+			.getType() == Roi.ANGLE || p.getType() == Roi.FREELINE;
+		return supportedType && p.getStrokeWidth() == 0 && !p.isSplineFit();
 	}
 
 }

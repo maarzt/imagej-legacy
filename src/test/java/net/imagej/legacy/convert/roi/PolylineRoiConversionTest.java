@@ -305,7 +305,14 @@ public class PolylineRoiConversionTest {
 	public void testPolylineRoiToPolylineConverterWithFreeLine() {
 		final Polyline<?> converted = convertService.convert(free, Polyline.class);
 
-		assertTrue(converted == null);
+		assertTrue(converted instanceof UnmodifiablePolylineRoiWrapper);
+	}
+
+	@Test
+	public void testPolylineRoiToPolylineConverterWithAngle() {
+		final Polyline<?> converted = convertService.convert(angle, Polyline.class);
+
+		assertTrue(converted instanceof UnmodifiablePolylineRoiWrapper);
 	}
 
 	@Test
