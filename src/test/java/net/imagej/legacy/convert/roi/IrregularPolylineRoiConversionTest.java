@@ -240,4 +240,49 @@ public class IrregularPolylineRoiConversionTest {
 		assertEquals(maxX + 2.5, wrap.realMax(0), 0);
 		assertEquals(maxY + 2.5, wrap.realMax(1), 0);
 	}
+
+	@Test
+	public void
+		testPolylineRoiToRealMaskRealIntervalConverterPolylineWithWidth()
+	{
+		poly.updateWideLine(10);
+		final RealMaskRealInterval converted = convertService.convert(poly,
+			RealMaskRealInterval.class);
+
+		assertTrue(converted instanceof IrregularPolylineRoiWrapper);
+	}
+
+	@Test
+	public void
+		testPolylineRoiToRealMaskRealIntervalConverterFreelineWithWidth()
+	{
+		free.updateWideLine(12);
+		final RealMaskRealInterval converted = convertService.convert(free,
+			RealMaskRealInterval.class);
+
+		assertTrue(converted instanceof IrregularPolylineRoiWrapper);
+	}
+
+	@Test
+	public void
+		testPolylineRoiToRealMaskRealIntervalConverterSplineFitPolyline()
+	{
+		poly.fitSpline();
+		final RealMaskRealInterval converted = convertService.convert(poly,
+			RealMaskRealInterval.class);
+
+		assertTrue(converted instanceof IrregularPolylineRoiWrapper);
+	}
+
+	@Test
+	public void
+		testPolylineRoiToRealMaskRealIntervalConverterSplineFitPolylineWithWidth()
+	{
+		poly.fitSpline();
+		poly.updateWideLine(5);
+		final RealMaskRealInterval converted = convertService.convert(poly,
+			RealMaskRealInterval.class);
+
+		assertTrue(converted instanceof IrregularPolylineRoiWrapper);
+	}
 }
