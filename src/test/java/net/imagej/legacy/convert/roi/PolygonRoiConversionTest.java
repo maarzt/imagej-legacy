@@ -288,7 +288,14 @@ public class PolygonRoiConversionTest {
 	public void testPolygonRoiToPolygon2DConverterFreeRoi() {
 		final Polygon2D<?> converted = convertService.convert(free,
 			Polygon2D.class);
-		assertTrue(converted == null);
+		assertTrue(converted instanceof UnmodifiablePolygonRoiWrapper);
+	}
+
+	@Test
+	public void testPolygonRoiToPolygon2DConverterTracedRoi() {
+		final Polygon2D<?> converted = convertService.convert(traced,
+			Polygon2D.class);
+		assertTrue(converted instanceof UnmodifiablePolygonRoiWrapper);
 	}
 
 	@Test

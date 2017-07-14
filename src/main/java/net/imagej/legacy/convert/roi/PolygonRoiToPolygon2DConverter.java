@@ -41,13 +41,20 @@ import org.scijava.convert.ConversionRequest;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
+import ij.gui.EllipseRoi;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
+import ij.gui.RotatedRectRoi;
 
 /**
- * Converts an ImageJ 1.x {@link PolygonRoi} to an ImgLib2 {@link Polygon2D}.
- * This is only intended to convert ImageJ 1.x {@link PolygonRoi}s of type
- * POLYGON which are not spline fit.
+ * Converts an ImageJ 1.x {@link PolygonRoi} of type:
+ * <ul>
+ * <li>{@link Roi#POLYGON}</li>
+ * <li>{@link Roi#TRACED_ROI}</li>
+ * <li>{@link Roi#FREEROI}</li>
+ * </ul>
+ * to an ImgLib2 {@link Polygon2D}. This converter does not support spline fit
+ * PolygonRois.
  *
  * @author Alison Walter
  */
@@ -58,28 +65,20 @@ public class PolygonRoiToPolygon2DConverter extends
 
 	@Override
 	public boolean canConvert(final ConversionRequest request) {
-		if (super.canConvert(request)) {
-			final PolygonRoi src = (PolygonRoi) request.sourceObject();
-			return src.getType() == Roi.POLYGON && !src.isSplineFit();
-		}
+		if (super.canConvert(request)) return supportedType((PolygonRoi) request
+			.sourceObject());
 		return false;
 	}
 
 	@Override
 	public boolean canConvert(final Object src, final Type dest) {
-		if (super.canConvert(src, dest)) {
-			final PolygonRoi p = (PolygonRoi) src;
-			return p.getType() == Roi.POLYGON && !p.isSplineFit();
-		}
+		if (super.canConvert(src, dest)) return supportedType((PolygonRoi) src);
 		return false;
 	}
 
 	@Override
 	public boolean canConvert(final Object src, final Class<?> dest) {
-		if (super.canConvert(src, dest)) {
-			final PolygonRoi p = (PolygonRoi) src;
-			return p.getType() == Roi.POLYGON && !p.isSplineFit();
-		}
+		if (super.canConvert(src, dest)) return supportedType((PolygonRoi) src);
 		return false;
 	}
 
@@ -88,7 +87,9 @@ public class PolygonRoiToPolygon2DConverter extends
 	public <T> T convert(final Object src, final Class<T> dest) {
 		if (!(src instanceof PolygonRoi)) throw new IllegalArgumentException(
 			"Cannot convert " + src.getClass().getSimpleName() + " to Polygon2D");
-		return (T) new PolygonRoiWrapper((PolygonRoi) src);
+		if (((PolygonRoi) src).getType() == Roi.POLYGON)
+			return (T) new PolygonRoiWrapper((PolygonRoi) src);
+		return (T) new UnmodifiablePolygonRoiWrapper((PolygonRoi) src);
 	}
 
 	@Override
@@ -102,4 +103,13 @@ public class PolygonRoiToPolygon2DConverter extends
 		return PolygonRoi.class;
 	}
 
+	// -- Helper methods --
+
+	private boolean supportedType(final PolygonRoi p) {
+		final boolean supportedType = p.getType() == Roi.POLYGON || p
+			.getType() == Roi.TRACED_ROI || p.getType() == Roi.FREEROI;
+		// EllipseRoi and RotatedRectRoi are both PolygonRois & FREEROI
+		return supportedType && !p.isSplineFit() &&
+			!(p instanceof RotatedRectRoi) && !(p instanceof EllipseRoi);
+	}
 }
