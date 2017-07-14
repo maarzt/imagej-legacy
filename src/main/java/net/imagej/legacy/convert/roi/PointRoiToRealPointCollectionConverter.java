@@ -34,11 +34,11 @@ package net.imagej.legacy.convert.roi;
 import net.imglib2.RealLocalizable;
 import net.imglib2.roi.geom.real.RealPointCollection;
 
-import org.scijava.convert.AbstractConverter;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
 import ij.gui.PointRoi;
+import ij.gui.Roi;
 
 /**
  * Converts an ImageJ 1.x {@link PointRoi} to an ImgLib2
@@ -48,17 +48,8 @@ import ij.gui.PointRoi;
  */
 @Plugin(type = Converter.class)
 public class PointRoiToRealPointCollectionConverter extends
-	AbstractConverter<PointRoi, RealPointCollection<RealLocalizable>>
+	AbstractRoiToMaskConverter<PointRoi, RealPointCollection<RealLocalizable>>
 {
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T convert(final Object src, final Class<T> dest) {
-		if (!(src instanceof PointRoi)) throw new IllegalArgumentException(
-			"Cannot convert " + src.getClass().getSimpleName() +
-				" to RealPointCollection");
-		return (T) new PointRoiWrapper((PointRoi) src);
-	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -69,6 +60,16 @@ public class PointRoiToRealPointCollectionConverter extends
 	@Override
 	public Class<PointRoi> getInputType() {
 		return PointRoi.class;
+	}
+
+	@Override
+	public RealPointCollection<RealLocalizable> convert(PointRoi src) {
+		return new PointRoiWrapper(src);
+	}
+
+	@Override
+	public boolean supportedType(PointRoi src) {
+		return src.getType() == Roi.POINT;
 	}
 
 }

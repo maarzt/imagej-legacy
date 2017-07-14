@@ -31,18 +31,15 @@
 
 package net.imagej.legacy.convert.roi;
 
-import java.lang.reflect.Type;
-
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.Box;
 
-import org.scijava.Priority;
-import org.scijava.convert.AbstractConverter;
-import org.scijava.convert.ConversionRequest;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
+import ij.gui.ImageRoi;
 import ij.gui.Roi;
+import ij.gui.TextRoi;
 
 /**
  * Converts an ImageJ 1.x {@link Roi} of type {@link Roi#RECTANGLE} with corner
@@ -50,43 +47,10 @@ import ij.gui.Roi;
  *
  * @author Alison Walter
  */
-@Plugin(type = Converter.class, priority = Priority.LOW)
-public class RoiToBoxConverter extends AbstractConverter<Roi, Box<RealPoint>> {
-
-	@Override
-	public boolean canConvert(final ConversionRequest request) {
-		if (super.canConvert(request)) {
-			final Roi r = (Roi) request.sourceObject();
-			return r.getType() == Roi.RECTANGLE && r.getCornerDiameter() == 0;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean canConvert(final Object src, final Type dest) {
-		if (super.canConvert(src, dest)) {
-			final Roi r = (Roi) src;
-			return r.getType() == Roi.RECTANGLE && r.getCornerDiameter() == 0;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean canConvert(final Object src, final Class<?> dest) {
-		if (super.canConvert(src, dest)) {
-			final Roi r = (Roi) src;
-			return r.getType() == Roi.RECTANGLE && r.getCornerDiameter() == 0;
-		}
-		return false;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T convert(final Object src, final Class<T> dest) {
-		if (!(src instanceof Roi)) throw new IllegalArgumentException(
-			"Cannot convert " + src.getClass().getSimpleName() + " to Box");
-		return (T) new RoiWrapper((Roi) src);
-	}
+@Plugin(type = Converter.class)
+public class RoiToBoxConverter extends
+	AbstractRoiToMaskConverter<Roi, Box<RealPoint>>
+{
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -97,6 +61,18 @@ public class RoiToBoxConverter extends AbstractConverter<Roi, Box<RealPoint>> {
 	@Override
 	public Class<Roi> getInputType() {
 		return Roi.class;
+	}
+
+	@Override
+	public Box<RealPoint> convert(final Roi src) {
+		return new RoiWrapper(src);
+	}
+
+	@Override
+	public boolean supportedType(final Roi src) {
+		// TextRoi and ImageRoi both have roi type of Rectangle
+		return src.getType() == Roi.RECTANGLE && src.getCornerDiameter() == 0 &&
+			!(src instanceof ImageRoi) && !(src instanceof TextRoi);
 	}
 
 }

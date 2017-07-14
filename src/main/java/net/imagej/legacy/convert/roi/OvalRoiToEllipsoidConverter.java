@@ -34,11 +34,11 @@ package net.imagej.legacy.convert.roi;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.Ellipsoid;
 
-import org.scijava.convert.AbstractConverter;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
 import ij.gui.OvalRoi;
+import ij.gui.Roi;
 
 /**
  * Converts an ImageJ 1.x {@link OvalRoi} to an ImgLib2 {@link Ellipsoid}.
@@ -47,16 +47,8 @@ import ij.gui.OvalRoi;
  */
 @Plugin(type = Converter.class)
 public class OvalRoiToEllipsoidConverter extends
-	AbstractConverter<OvalRoi, Ellipsoid<RealPoint>>
+	AbstractRoiToMaskConverter<OvalRoi, Ellipsoid<RealPoint>>
 {
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T convert(final Object src, final Class<T> dest) {
-		if (!(src instanceof OvalRoi)) throw new IllegalArgumentException(
-			"Cannot convert " + src.getClass().getSimpleName() + " to Ellipsoid");
-		return (T) new OvalRoiWrapper((OvalRoi) src);
-	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -67,6 +59,16 @@ public class OvalRoiToEllipsoidConverter extends
 	@Override
 	public Class<OvalRoi> getInputType() {
 		return OvalRoi.class;
+	}
+
+	@Override
+	public Ellipsoid<RealPoint> convert(final OvalRoi src) {
+		return new OvalRoiWrapper(src);
+	}
+
+	@Override
+	public boolean supportedType(final OvalRoi src) {
+		return src.getType() == Roi.OVAL;
 	}
 
 }

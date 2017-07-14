@@ -33,10 +33,10 @@ package net.imagej.legacy.convert.roi;
 
 import net.imglib2.roi.RealMaskRealInterval;
 
-import org.scijava.convert.AbstractConverter;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
+import ij.gui.Roi;
 import ij.gui.ShapeRoi;
 
 /**
@@ -47,17 +47,8 @@ import ij.gui.ShapeRoi;
  */
 @Plugin(type = Converter.class)
 public class ShapeRoiToMaskRealIntervalConverter extends
-	AbstractConverter<ShapeRoi, RealMaskRealInterval>
+	AbstractRoiToMaskConverter<ShapeRoi, RealMaskRealInterval>
 {
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T convert(final Object src, final Class<T> dest) {
-		if (!(src instanceof ShapeRoi)) throw new IllegalArgumentException(
-			"Cannot convert " + src.getClass().getSimpleName() +
-				" to RealMaskRealInterval");
-		return (T) new ShapeRoiWrapper((ShapeRoi) src);
-	}
 
 	@Override
 	public Class<RealMaskRealInterval> getOutputType() {
@@ -67,6 +58,16 @@ public class ShapeRoiToMaskRealIntervalConverter extends
 	@Override
 	public Class<ShapeRoi> getInputType() {
 		return ShapeRoi.class;
+	}
+
+	@Override
+	public RealMaskRealInterval convert(final ShapeRoi src) {
+		return new ShapeRoiWrapper(src);
+	}
+
+	@Override
+	public boolean supportedType(final ShapeRoi src) {
+		return src.getType() == Roi.COMPOSITE;
 	}
 
 }

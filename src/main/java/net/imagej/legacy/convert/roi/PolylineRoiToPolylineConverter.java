@@ -31,13 +31,9 @@
 
 package net.imagej.legacy.convert.roi;
 
-import java.lang.reflect.Type;
-
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.Polyline;
 
-import org.scijava.convert.AbstractConverter;
-import org.scijava.convert.ConversionRequest;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
@@ -58,37 +54,8 @@ import ij.gui.Roi;
  */
 @Plugin(type = Converter.class)
 public class PolylineRoiToPolylineConverter extends
-	AbstractConverter<PolygonRoi, Polyline<RealPoint>>
+	AbstractRoiToMaskConverter<PolygonRoi, Polyline<RealPoint>>
 {
-
-	@Override
-	public boolean canConvert(final ConversionRequest request) {
-		if (super.canConvert(request)) return supportedType((PolygonRoi) request
-			.sourceObject());
-		return false;
-	}
-
-	@Override
-	public boolean canConvert(final Object src, final Type dest) {
-		if (super.canConvert(src, dest)) return supportedType((PolygonRoi) src);
-		return false;
-	}
-
-	@Override
-	public boolean canConvert(final Object src, final Class<?> dest) {
-		if (super.canConvert(src, dest)) return supportedType((PolygonRoi) src);
-		return false;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T convert(final Object src, final Class<T> dest) {
-		if (!(src instanceof PolygonRoi)) throw new IllegalArgumentException(
-			"Cannot convert " + src.getClass().getSimpleName() + " to Polyline");
-		if (((PolygonRoi) src).getType() == Roi.POLYLINE)
-			return (T) new PolylineRoiWrapper((PolygonRoi) src);
-		return (T) new UnmodifiablePolylineRoiWrapper((PolygonRoi) src);
-	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -101,12 +68,17 @@ public class PolylineRoiToPolylineConverter extends
 		return PolygonRoi.class;
 	}
 
-	// -- Helper methods --
+	@Override
+	public Polyline<RealPoint> convert(final PolygonRoi src) {
+		if (src.getType() == Roi.POLYLINE) return new PolylineRoiWrapper(src);
+		return new UnmodifiablePolylineRoiWrapper(src);
+	}
 
-	private boolean supportedType(final PolygonRoi p) {
-		final boolean supportedType = p.getType() == Roi.POLYLINE || p
-			.getType() == Roi.ANGLE || p.getType() == Roi.FREELINE;
-		return supportedType && p.getStrokeWidth() == 0 && !p.isSplineFit();
+	@Override
+	public boolean supportedType(final PolygonRoi src) {
+		final boolean supportedType = src.getType() == Roi.POLYLINE || src
+			.getType() == Roi.ANGLE || src.getType() == Roi.FREELINE;
+		return supportedType && src.getStrokeWidth() == 0 && !src.isSplineFit();
 	}
 
 }

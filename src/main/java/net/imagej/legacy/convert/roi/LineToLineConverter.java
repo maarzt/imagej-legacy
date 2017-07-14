@@ -31,13 +31,9 @@
 
 package net.imagej.legacy.convert.roi;
 
-import java.lang.reflect.Type;
-
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.Line;
 
-import org.scijava.convert.AbstractConverter;
-import org.scijava.convert.ConversionRequest;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
@@ -51,45 +47,14 @@ import ij.gui.Arrow;
  */
 @Plugin(type = Converter.class)
 public class LineToLineConverter extends
-	AbstractConverter<ij.gui.Line, Line<RealPoint>>
+	AbstractRoiToMaskConverter<ij.gui.Line, Line<RealPoint>>
 {
-
-	@Override
-	public boolean canConvert(final ConversionRequest request) {
-		if (super.canConvert(request)) {
-			final ij.gui.Line src = (ij.gui.Line) request.sourceObject();
-			return !(src instanceof Arrow) && ij.gui.Line.getWidth() <= 1;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean canConvert(final Object src, final Type dest) {
-		if (super.canConvert(src, dest)) return !(src instanceof Arrow) &&
-			ij.gui.Line.getWidth() <= 1;
-		return false;
-	}
-
-	@Override
-	public boolean canConvert(final Object src, final Class<?> dest) {
-		if (super.canConvert(src, dest)) return !(src instanceof Arrow) &&
-			ij.gui.Line.getWidth() <= 1;
-		return false;
-	}
 
 	@Override
 	public boolean canConvert(final Class<?> src, final Class<?> dest) {
 		if (super.canConvert(src, dest)) return !src.equals(Arrow.class) &&
 			ij.gui.Line.getWidth() <= 1;
 		return false;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T convert(final Object src, final Class<T> dest) {
-		if (!(src instanceof ij.gui.Line)) throw new IllegalArgumentException(
-			"Cannot convert " + src.getClass().getSimpleName() + " to Line");
-		return (T) new LineWrapper((ij.gui.Line) src);
 	}
 
 	@Override
@@ -101,6 +66,16 @@ public class LineToLineConverter extends
 	@Override
 	public Class<ij.gui.Line> getInputType() {
 		return ij.gui.Line.class;
+	}
+
+	@Override
+	public Line<RealPoint> convert(final ij.gui.Line src) {
+		return new LineWrapper(src);
+	}
+
+	@Override
+	public boolean supportedType(final ij.gui.Line src) {
+		return !(src instanceof Arrow) && ij.gui.Line.getWidth() <= 1;
 	}
 
 }
