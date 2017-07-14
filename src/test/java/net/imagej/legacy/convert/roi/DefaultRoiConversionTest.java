@@ -38,16 +38,26 @@ import static org.junit.Assert.assertTrue;
 import java.awt.Rectangle;
 
 import net.imglib2.Point;
+import net.imglib2.RealLocalizable;
 import net.imglib2.roi.MaskInterval;
+import net.imglib2.roi.MaskPredicate;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.scijava.Context;
+import org.scijava.convert.ConvertService;
 
+import ij.ImagePlus;
+import ij.gui.Arrow;
 import ij.gui.EllipseRoi;
+import ij.gui.ImageRoi;
 import ij.gui.Line;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import ij.gui.RotatedRectRoi;
+import ij.gui.TextRoi;
 
 /**
  * Tests converting ImageJ 1.x {@link Roi}s to ImgLib2 {@link MaskInterval}, and
@@ -58,10 +68,23 @@ import ij.gui.RotatedRectRoi;
 public class DefaultRoiConversionTest {
 
 	private static Point test;
+	private ConvertService convertService;
 
 	@BeforeClass
 	public static void initialize() {
 		test = new Point(new int[] { 0, 0 });
+	}
+
+	@Before
+	public void setup() {
+		final Context context = new Context(ConvertService.class);
+		convertService = context.service(ConvertService.class);
+		ij.gui.Line.setWidth(1);
+	}
+
+	@After
+	public void tearDown() {
+		convertService.context().dispose();
 	}
 
 	@Test
@@ -197,4 +220,83 @@ public class DefaultRoiConversionTest {
 		assertFalse(w.test(test));
 	}
 
+	@Test
+	public void testRoiToMaskIntervalConverterLineWithWidth() {
+		final Line l = new Line(10, 10, 100, 100);
+		ij.gui.Line.setWidth(5);
+		l.setStrokeWidth(5);
+		final MaskInterval converted = convertService.convert(l,
+			MaskInterval.class);
+
+		assertTrue(converted instanceof DefaultRoiWrapper);
+	}
+
+	@Test
+	public void testRoiToMaskIntervalConverterSplineFitPolygonRoi() {
+		final PolygonRoi p = new PolygonRoi(new float[] { 0, 15, 30 }, new float[] {
+			10, 25, 10 }, Roi.POLYGON);
+		p.fitSpline();
+		final MaskInterval converted = convertService.convert(p,
+			MaskInterval.class);
+
+		assertTrue(converted instanceof DefaultRoiWrapper);
+	}
+
+	@Test
+	public void testRoiToMaskIntervalConverterRoundedCornerRectangle() {
+		final Roi r = new Roi(17, -3, 10, 16, 10);
+		final MaskInterval converted = convertService.convert(r,
+			MaskInterval.class);
+
+		assertTrue(converted instanceof DefaultRoiWrapper);
+	}
+
+	@Test
+	public void testRoiToMaskIntervalConverterEllipseRoi() {
+		final EllipseRoi e = new EllipseRoi(10, 11, 20, 21, 0.5);
+		final MaskInterval converted = convertService.convert(e,
+			MaskInterval.class);
+
+		assertTrue(converted instanceof DefaultRoiWrapper);
+	}
+
+	@Test
+	public void testRoiToMaskIntervalConverterRotatedRectRoi() {
+		final RotatedRectRoi rrr = new RotatedRectRoi(-3.5, 27, 30.5, 61, 6);
+		final MaskInterval converted = convertService.convert(rrr,
+			MaskInterval.class);
+
+		assertTrue(converted instanceof DefaultRoiWrapper);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRoiToMaskIntervalConverterTextRoi() {
+		final TextRoi t = new TextRoi(10, 10, "text");
+		final MaskPredicate<? extends RealLocalizable> converted = convertService
+			.convert(t, MaskPredicate.class);
+
+		assertTrue(converted == null);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRoiToMaskIntervalConverterArrow() {
+		final Arrow a = new Arrow(12, 13, 90, 76);
+		final MaskPredicate<? extends RealLocalizable> converted = convertService
+			.convert(a, MaskPredicate.class);
+
+		assertTrue(converted == null);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRoiToMaskIntervalConverterImageRoi() {
+		final ImagePlus img = new ImagePlus("http://imagej.net/images/blobs.gif");
+		final ImageRoi i = new ImageRoi(12, 8, img.getBufferedImage());
+		final MaskPredicate<? extends RealLocalizable> converted = convertService
+			.convert(i, MaskPredicate.class);
+
+		assertTrue(converted == null);
+	}
 }
