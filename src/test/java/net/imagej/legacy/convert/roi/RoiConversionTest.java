@@ -193,4 +193,12 @@ public class RoiConversionTest {
 		assertEquals(converted.sideLength(0), converted.sideLength(0), 0);
 		assertEquals(converted.sideLength(1), converted.sideLength(1), 0);
 	}
+
+	@Test
+	public void testRoiToBoxConverterRoundedCorner() {
+		rect.setCornerDiameter(10);
+		final Box<?> converted = convertService.convert(rect, Box.class);
+
+		assertTrue(converted == null);
+	}
 }

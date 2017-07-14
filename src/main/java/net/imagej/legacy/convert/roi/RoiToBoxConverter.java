@@ -31,23 +31,54 @@
 
 package net.imagej.legacy.convert.roi;
 
+import java.lang.reflect.Type;
+
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.Box;
 
 import org.scijava.Priority;
 import org.scijava.convert.AbstractConverter;
+import org.scijava.convert.ConversionRequest;
 import org.scijava.convert.Converter;
 import org.scijava.plugin.Plugin;
 
 import ij.gui.Roi;
 
 /**
- * Converts an ImageJ 1.x {@link Roi} to an ImgLib2 {@link Box}.
+ * Converts an ImageJ 1.x {@link Roi} of type {@link Roi#RECTANGLE} with corner
+ * diameter = 0 to an ImgLib2 {@link Box}.
  *
  * @author Alison Walter
  */
 @Plugin(type = Converter.class, priority = Priority.LOW)
 public class RoiToBoxConverter extends AbstractConverter<Roi, Box<RealPoint>> {
+
+	@Override
+	public boolean canConvert(final ConversionRequest request) {
+		if (super.canConvert(request)) {
+			final Roi r = (Roi) request.sourceObject();
+			return r.getType() == Roi.RECTANGLE && r.getCornerDiameter() == 0;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean canConvert(final Object src, final Type dest) {
+		if (super.canConvert(src, dest)) {
+			final Roi r = (Roi) src;
+			return r.getType() == Roi.RECTANGLE && r.getCornerDiameter() == 0;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean canConvert(final Object src, final Class<?> dest) {
+		if (super.canConvert(src, dest)) {
+			final Roi r = (Roi) src;
+			return r.getType() == Roi.RECTANGLE && r.getCornerDiameter() == 0;
+		}
+		return false;
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
