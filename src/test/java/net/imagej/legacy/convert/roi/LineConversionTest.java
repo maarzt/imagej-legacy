@@ -32,8 +32,10 @@
 package net.imagej.legacy.convert.roi;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToLineConverter;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.DefaultLine;
 import net.imglib2.roi.geom.real.Line;
@@ -46,11 +48,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.gui.Arrow;
 
 /**
- * Tests converting {@link ij.gui.Line Line} to {@link Line} and the
+ * Tests converting between {@link ij.gui.Line Line} and {@link Line}, and the
  * corresponding {@link LineWrapper}.
  *
  * @author Alison Walter
@@ -84,6 +87,8 @@ public class LineConversionTest {
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- LineWrapper tests --
 
 	@Test
 	public void testLineWrapperGetter() {
@@ -136,6 +141,8 @@ public class LineConversionTest {
 		assertEquals(150, wrap.realMax(1), 0);
 	}
 
+	// -- LineToLineConverter tests --
+
 	@Test
 	public void testLineToLineConverter() {
 		final Line<?> converted = convertService.convert(ijLine, Line.class);
@@ -167,6 +174,49 @@ public class LineConversionTest {
 		// method functions differently from ij.gui.Line, and an Arrow and a Line
 		// which have the same end coordinates have different measurements. So,
 		// Arrows cannot be converted to imglib2 Line
+	}
+
+	// -- Line to ij.gui.Line converter tests --
+
+	@Test
+	public void testLineToIJLineConverterMatching() {
+		final Converter<?, ?> c = convertService.getHandler(ilLine,
+			ij.gui.Line.class);
+		assertTrue(c instanceof LineToIJLineConverter);
+
+		final Converter<?, ?> wrapc = convertService.getHandler(wrap,
+			ij.gui.Line.class);
+		assertTrue(wrapc instanceof WrapperToLineConverter);
+
+		final Converter<?, ?> arrow = convertService.getHandler(ilLine,
+			Arrow.class);
+		assertNull(arrow);
+
+		final Line<RealPoint> ddd = new DefaultLine(new double[] { 10.5, 7, -6.25 },
+			new double[] { 106, -8.5, 21 }, false);
+		final Converter<?, ?> multiDLine = convertService.getHandler(ddd,
+			ij.gui.Line.class);
+		assertNull(multiDLine);
+	}
+
+	@Test
+	public void testLineToIJLineConverterWithLine() {
+		final ij.gui.Line result = convertService.convert(ilLine,
+			ij.gui.Line.class);
+		final RealPoint eOne = ilLine.endpointOne();
+		final RealPoint eTwo = ilLine.endpointTwo();
+
+		assertEquals(result.x1d, eOne.getDoublePosition(0), 0);
+		assertEquals(result.y1d, eOne.getDoublePosition(1), 0);
+		assertEquals(result.x2d, eTwo.getDoublePosition(0), 0);
+		assertEquals(result.y2d, eTwo.getDoublePosition(1), 0);
+	}
+
+	@Test
+	public void testLineToIJLineConverterWithLineWrapper() {
+		final ij.gui.Line result = convertService.convert(wrap, ij.gui.Line.class);
+
+		assertTrue(ijLine == result);
 	}
 
 	// -- Helper methods --
