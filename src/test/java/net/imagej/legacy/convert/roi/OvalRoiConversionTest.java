@@ -33,12 +33,17 @@ package net.imagej.legacy.convert.roi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToOvalRoiConverter;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.ClosedEllipsoid;
+import net.imglib2.roi.geom.real.ClosedSphere;
 import net.imglib2.roi.geom.real.Ellipsoid;
+import net.imglib2.roi.geom.real.OpenEllipsoid;
+import net.imglib2.roi.geom.real.Sphere;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,12 +52,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.gui.OvalRoi;
 
 /**
- * Tests converting {@link OvalRoi} to {@link Ellipsoid} and the corresponding
- * {@link OvalRoiWrapper}.
+ * Tests converting between {@link OvalRoi} and {@link Ellipsoid}, and the
+ * corresponding {@link OvalRoiWrapper}.
  *
  * @author Alison Walter
  */
@@ -87,6 +93,8 @@ public class OvalRoiConversionTest {
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- OvalWrapper tests --
 
 	@Test
 	public void testOvalWrapperGetters() {
@@ -174,11 +182,53 @@ public class OvalRoiConversionTest {
 			.getDoublePosition(1), 0);
 	}
 
+	// -- OvalRoiToEllipsoidConverter tests --
+
 	@Test
 	public void testOvalRoiToEllipsoidConverter() {
 		final Ellipsoid<?> converted = convertService.convert(oval,
 			Ellipsoid.class);
 
 		assertTrue(converted instanceof OvalRoiWrapper);
+	}
+
+	// -- EllipsoidToOvalRoiConverter tests --
+
+	@Test
+	public void testEllipsoidToOvalRoiConverterMatching() {
+		final Converter<?, ?> c = convertService.getHandler(e, OvalRoi.class);
+		assertTrue(c instanceof EllipsoidToOvalRoiConverter);
+
+		final Converter<?, ?> cc = convertService.getHandler(wrap, OvalRoi.class);
+		assertTrue(cc instanceof WrapperToOvalRoiConverter);
+
+		final Sphere<RealPoint> s = new ClosedSphere(new double[] { 1.25, -13.5 },
+			10);
+		final Converter<?, ?> ccc = convertService.getHandler(s, OvalRoi.class);
+		assertTrue(ccc instanceof EllipsoidToOvalRoiConverter);
+
+		final Ellipsoid<RealPoint> oe = new OpenEllipsoid(new double[] { 1.5, 6.25,
+			-9, 62.125 }, new double[] { 11, 1, 0.5, 107 });
+		final Converter<?, ?> cccc = convertService.getHandler(oe, OvalRoi.class);
+		assertNull(cccc);
+	}
+
+	@Test
+	public void testEllipsoidToOvalRoiConverterWithEllipsoid() {
+		final OvalRoi o = convertService.convert(e, OvalRoi.class);
+
+		final RealPoint center = e.center();
+		assertEquals(center.getDoublePosition(0), o.getXBase() + o.getFloatWidth() /
+			2, 0);
+		assertEquals(center.getDoublePosition(1), o.getYBase() + o
+			.getFloatHeight() / 2, 0);
+		assertEquals(e.semiAxisLength(0), o.getFloatWidth() / 2, 0);
+		assertEquals(e.semiAxisLength(1), o.getFloatHeight() / 2, 0);
+	}
+
+	@Test
+	public void testEllipsoidToOvalRoiConverterWithWrapper() {
+		final OvalRoi o = convertService.convert(wrap, OvalRoi.class);
+		assertTrue(oval == o);
 	}
 }
