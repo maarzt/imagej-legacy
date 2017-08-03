@@ -141,10 +141,10 @@ public class LineConversionTest {
 		assertEquals(150, wrap.realMax(1), 0);
 	}
 
-	// -- LineToLineConverter tests --
+	// -- IJLineToLineConverter tests --
 
 	@Test
-	public void testLineToLineConverter() {
+	public void testIJLineToLineConverter() {
 		final Line<?> converted = convertService.convert(ijLine, Line.class);
 		assertTrue(converted instanceof LineWrapper);
 
@@ -159,7 +159,7 @@ public class LineConversionTest {
 	}
 
 	@Test
-	public void testLineToLineConverterLineWithWidth() {
+	public void testIJLineToLineConverterLineWithWidth() {
 		ij.gui.Line.setWidth(10);
 		final Line<?> converted = convertService.convert(ijLine, Line.class);
 		assertTrue(converted == null); // converter does not work on ij.gui.Line
@@ -167,7 +167,7 @@ public class LineConversionTest {
 	}
 
 	@Test
-	public void testLineToLineConverterArrow() {
+	public void testIJLineToLineConverterArrow() {
 		final Arrow a = new Arrow(10, 10, 100, 100);
 		final Line<?> converted = convertService.convert(a, Line.class);
 		assertTrue(converted == null); // Arrow is an ij.gui.Line but its contains

@@ -46,7 +46,7 @@ import ij.gui.Arrow;
  * @author Alison Walter
  */
 @Plugin(type = Converter.class)
-public class LineToLineConverter extends
+public class IJLineToLineConverter extends
 	AbstractRoiToMaskConverter<ij.gui.Line, Line<RealPoint>>
 {
 
