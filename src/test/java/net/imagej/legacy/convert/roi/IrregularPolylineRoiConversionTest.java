@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToPolygonRoiConverter;
 import net.imglib2.Point;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -46,6 +47,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
@@ -116,6 +118,8 @@ public class IrregularPolylineRoiConversionTest {
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- Wrapper tests --
 
 	@Test
 	public void testIrregularPolylineRoiWrapperPolylineWithWidth() {
@@ -241,6 +245,7 @@ public class IrregularPolylineRoiConversionTest {
 		assertEquals(maxY + 2.5, wrap.realMax(1), 0);
 	}
 
+	// -- PolygonRoi to MaskRealInterval conversion tests --
 	@Test
 	public void
 		testPolylineRoiToRealMaskRealIntervalConverterPolylineWithWidth()
@@ -284,5 +289,72 @@ public class IrregularPolylineRoiConversionTest {
 			RealMaskRealInterval.class);
 
 		assertTrue(converted instanceof IrregularPolylineRoiWrapper);
+	}
+
+	// -- Wrapped PolygonRoi to PolygonRoi conversion tests --
+
+	@Test
+	public void testUnwrapConverterMatching() {
+		free.updateWideLine(1.5f);
+		final Converter<?, ?> fWidth = convertService.getHandler(freeWrap,
+			PolygonRoi.class);
+		assertTrue(fWidth instanceof WrapperToPolygonRoiConverter);
+
+		poly.fitSpline();
+		final Converter<?, ?> pSpline = convertService.getHandler(wrap,
+			PolygonRoi.class);
+		assertTrue(pSpline instanceof WrapperToPolygonRoiConverter);
+
+		poly.updateWideLine(2.5f);
+		final Converter<?, ?> pSplineWidth = convertService.getHandler(wrap,
+			PolygonRoi.class);
+		assertTrue(pSplineWidth instanceof WrapperToPolygonRoiConverter);
+
+		poly.removeSplineFit();
+		final Converter<?, ?> pWidth = convertService.getHandler(wrap,
+			PolygonRoi.class);
+		assertTrue(pWidth instanceof WrapperToPolygonRoiConverter);
+	}
+
+	@Test
+	public void testUnwrapFreeLineWithWidth() {
+		free.updateWideLine(2.5f);
+		final PolygonRoi pr = convertService.convert(freeWrap, PolygonRoi.class);
+
+		assertTrue(free == pr);
+		assertEquals(Roi.FREELINE, pr.getType());
+		assertEquals(2.5, pr.getStrokeWidth(), 0);
+	}
+
+	@Test
+	public void testUnwrapPolylineWithWidth() {
+		poly.updateWideLine(3);
+		final PolygonRoi pr = convertService.convert(wrap, PolygonRoi.class);
+
+		assertTrue(poly == pr);
+		assertEquals(Roi.POLYLINE, pr.getType());
+		assertEquals(3, pr.getStrokeWidth(), 0);
+	}
+
+	@Test
+	public void testUnwrapSplineFitPolyline() {
+		poly.fitSpline();
+		final PolygonRoi pr = convertService.convert(wrap, PolygonRoi.class);
+
+		assertTrue(poly == pr);
+		assertEquals(Roi.POLYLINE, pr.getType());
+		assertTrue(poly.isSplineFit());
+	}
+
+	@Test
+	public void testUnwrapSplineFitPolylineWithWidth() {
+		poly.updateWideLine(0.25f);
+		poly.fitSpline();
+		final PolygonRoi pr = convertService.convert(wrap, PolygonRoi.class);
+
+		assertTrue(poly == pr);
+		assertEquals(Roi.POLYLINE, pr.getType());
+		assertEquals(0.25, pr.getStrokeWidth(), 0);
+		assertTrue(pr.isSplineFit());
 	}
 }
