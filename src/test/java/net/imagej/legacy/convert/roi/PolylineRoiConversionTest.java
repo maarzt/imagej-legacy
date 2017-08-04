@@ -33,11 +33,13 @@ package net.imagej.legacy.convert.roi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToPolygonRoiConverter;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.DefaultPolyline;
@@ -50,14 +52,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.ImagePlus;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 
 /**
- * Tests converting {@link PolygonRoi} to {@link Polyline} and the corresponding
- * wrappers.
+ * Tests converting between {@link PolygonRoi} and {@link Polyline}, and the
+ * corresponding wrappers.
  *
  * @author Alison Walter
  */
@@ -123,6 +126,8 @@ public class PolylineRoiConversionTest {
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- Test Wrappers --
 
 	@Test
 	public void testPolylineRoiWrapperGetters() {
@@ -277,6 +282,8 @@ public class PolylineRoiConversionTest {
 		assertEquals(126, angleWrap.realMax(1), 0);
 	}
 
+	// -- To Polyline conversion tests --
+
 	@Test
 	public void testPolylineRoiToPolylineConverter() {
 		final Polyline<?> converted = convertService.convert(poly, Polyline.class);
@@ -329,5 +336,81 @@ public class PolylineRoiConversionTest {
 		final Polyline<?> converted = convertService.convert(poly, Polyline.class);
 
 		assertTrue(converted == null);
+	}
+
+	// -- To PolygonRoi converter tests --
+
+	@Test
+	public void testPolylineToPolylineRoiConverterMatching() {
+		final List<RealPoint> pts = new ArrayList<>(4);
+		pts.add(new RealPoint(new double[] { 1, 1 }));
+		pts.add(new RealPoint(new double[] { 3.25, -6 }));
+		pts.add(new RealPoint(new double[] { 10.5, 8.5 }));
+		pts.add(new RealPoint(new double[] { 9, 6 }));
+		final Polyline<RealPoint> pl = new DefaultPolyline(pts);
+		final Converter<?, ?> polyline = convertService.getHandler(pl,
+			PolygonRoi.class);
+		assertTrue(polyline instanceof PolylineToPolylineRoiConverter);
+
+		final Converter<?, ?> wrapP = convertService.getHandler(wrap,
+			PolygonRoi.class);
+		assertTrue(wrapP instanceof WrapperToPolygonRoiConverter);
+
+		final Converter<?, ?> wrapA = convertService.getHandler(angleWrap,
+			PolygonRoi.class);
+		assertTrue(wrapA instanceof WrapperToPolygonRoiConverter);
+
+		final Converter<?, ?> wrapF = convertService.getHandler(freeWrap,
+			PolygonRoi.class);
+		assertTrue(wrapF instanceof WrapperToPolygonRoiConverter);
+
+		final List<RealPoint> pts2 = new ArrayList<>(3);
+		pts2.add(new RealPoint(new double[] { 0, 0, 0 }));
+		pts2.add(new RealPoint(new double[] { 10, 10, 10 }));
+		pts2.add(new RealPoint(new double[] { 12, 8, 8 }));
+		final Polyline<RealPoint> ddd = new DefaultPolyline(pts2);
+		final Converter<?, ?> cd = convertService.getHandler(ddd, PolygonRoi.class);
+		assertNull(cd);
+	}
+
+	@Test
+	public void testPolylineToPolygonRoiConversion() {
+		final List<RealPoint> verts = new ArrayList<>(4);
+		verts.add(new RealPoint(new double[] { -1.25, 10 }));
+		verts.add(new RealPoint(new double[] { 6, -1.25 }));
+		verts.add(new RealPoint(new double[] { 107.5, -12 }));
+		verts.add(new RealPoint(new double[] { 23.125, 300 }));
+		final Polyline<RealPoint> pl = new DefaultPolyline(verts);
+		final PolygonRoi pr = convertService.convert(pl, PolygonRoi.class);
+		final float[] x = pr.getFloatPolygon().xpoints;
+		final float[] y = pr.getFloatPolygon().ypoints;
+
+		assertEquals(Roi.POLYLINE, pr.getType());
+		assertEquals(pl.numVertices(), pr.getNCoordinates());
+		for (int i = 0; i < pr.getNCoordinates(); i++) {
+			assertEquals(verts.get(i).getDoublePosition(0), x[i], 0);
+			assertEquals(verts.get(i).getDoublePosition(1), y[i], 0);
+		}
+	}
+
+	@Test
+	public void testWrappedPolylineToPolygonRoiConversion() {
+		final PolygonRoi pr = convertService.convert(wrap, PolygonRoi.class);
+		assertTrue(poly == pr);
+		assertEquals(Roi.POLYLINE, pr.getType());
+	}
+
+	@Test
+	public void testWrappedFreelineToPolygonRoiConversion() {
+		final PolygonRoi pr = convertService.convert(freeWrap, PolygonRoi.class);
+		assertTrue(free == pr);
+		assertEquals(Roi.FREELINE, pr.getType());
+	}
+
+	@Test
+	public void testWrappedAngleToPolygonRoiConversion() {
+		final PolygonRoi pr = convertService.convert(angleWrap, PolygonRoi.class);
+		assertTrue(angle == pr);
+		assertEquals(Roi.ANGLE, pr.getType());
 	}
 }
