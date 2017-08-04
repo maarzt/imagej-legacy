@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToPolygonRoiConverter;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.roi.geom.real.DefaultPolygon2D;
@@ -47,6 +48,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.ImagePlus;
 import ij.gui.PolygonRoi;
@@ -109,6 +111,8 @@ public class PolygonRoiConversionTest {
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- Wrapper tests --
 
 	@Test
 	public void testPolygonRoiWrapperGetters() {
@@ -254,6 +258,8 @@ public class PolygonRoiConversionTest {
 		assertEquals(200, wrap.realMax(1), 0);
 	}
 
+	// -- to Polygon2D conversion tests --
+
 	@Test
 	public void testPolygonRoiToPolygon2DConverter() {
 		final Polygon2D<?> converted = convertService.convert(poly,
@@ -305,5 +311,65 @@ public class PolygonRoiConversionTest {
 			Polygon2D.class);
 
 		assertTrue(converted == null);
+	}
+
+	// -- to PolygonRoi conversion tests --
+
+	@Test
+	public void testPolygonRoiConverterMatching() {
+		final Polygon2D<RealPoint> py = new DefaultPolygon2D(new double[] { 10, 10,
+			15, 20, 20 }, new double[] { 1, 20, 33, 20, 1 });
+		final Converter<?, ?> c = convertService.getHandler(py, PolygonRoi.class);
+		assertTrue(c instanceof Polygon2DToPolygonRoiConverter);
+
+		final Converter<?, ?> pWrap = convertService.getHandler(wrap,
+			PolygonRoi.class);
+		assertTrue(pWrap instanceof WrapperToPolygonRoiConverter);
+
+		final Converter<?, ?> tWrap = convertService.getHandler(tracedWrap,
+			PolygonRoi.class);
+		assertTrue(tWrap instanceof WrapperToPolygonRoiConverter);
+
+		final Converter<?, ?> fWrap = convertService.getHandler(freeWrap,
+			PolygonRoi.class);
+		assertTrue(fWrap instanceof WrapperToPolygonRoiConverter);
+	}
+
+	@Test
+	public void testPolygon2DToPolygonRoiConversion() {
+		final Polygon2D<RealPoint> py = new DefaultPolygon2D(new double[] { 10, 10,
+			15, 20, 20 }, new double[] { 1, 20, 33, 20, 1 });
+		final PolygonRoi pr = convertService.convert(py, PolygonRoi.class);
+
+		assertEquals(Roi.POLYGON, pr.getType());
+		assertEquals(py.numVertices(), pr.getNCoordinates());
+		final float[] x = pr.getFloatPolygon().xpoints;
+		final float[] y = pr.getFloatPolygon().ypoints;
+		for (int i = 0; i < py.numVertices(); i++) {
+			final RealPoint v = py.vertex(i);
+			assertEquals(v.getDoublePosition(0), x[i], 0);
+			assertEquals(v.getDoublePosition(1), y[i], 0);
+		}
+	}
+
+	@Test
+	public void testWrappedPolygonToPolygonRoiConversion() {
+		final PolygonRoi pr = convertService.convert(wrap, PolygonRoi.class);
+		assertEquals(Roi.POLYGON, pr.getType());
+		assertTrue(poly == pr);
+	}
+
+	@Test
+	public void testWrappedFreelineToPolygonRoiConversion() {
+		final PolygonRoi pr = convertService.convert(freeWrap, PolygonRoi.class);
+		assertEquals(Roi.FREEROI, pr.getType());
+		assertTrue(free == pr);
+	}
+
+	@Test
+	public void testWrappedTracedToPolygonRoiConversion() {
+		final PolygonRoi pr = convertService.convert(tracedWrap, PolygonRoi.class);
+		assertEquals(Roi.TRACED_ROI, pr.getType());
+		assertTrue(traced == pr);
 	}
 }
