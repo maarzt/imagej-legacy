@@ -37,6 +37,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.awt.Rectangle;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToEllipseRoiConverter;
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToLineConverter;
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToPolygonRoiConverter;
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToRoiConverter;
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToRotatedRectRoiConverter;
 import net.imglib2.Point;
 import net.imglib2.RealLocalizable;
 import net.imglib2.roi.MaskInterval;
@@ -48,6 +53,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.ImagePlus;
 import ij.gui.Arrow;
@@ -60,8 +66,9 @@ import ij.gui.RotatedRectRoi;
 import ij.gui.TextRoi;
 
 /**
- * Tests converting ImageJ 1.x {@link Roi}s to ImgLib2 {@link MaskInterval}, and
- * the corresponding wrapper {@link DefaultRoiWrapper}.
+ * Tests converting between ImageJ 1.x {@link Roi}s and ImgLib2
+ * {@link MaskInterval}, and the corresponding wrapper
+ * {@link DefaultRoiWrapper}.
  *
  * @author Alison Walter
  */
@@ -86,6 +93,8 @@ public class DefaultRoiConversionTest {
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- Wrapper tests --
 
 	@Test
 	public void testDefaultRoiWrapperLineWithWidth() {
@@ -220,6 +229,8 @@ public class DefaultRoiConversionTest {
 		assertFalse(w.test(test));
 	}
 
+	// -- To MaskInterval conversion tests --
+
 	@Test
 	public void testRoiToMaskIntervalConverterLineWithWidth() {
 		final Line l = new Line(10, 10, 100, 100);
@@ -298,5 +309,77 @@ public class DefaultRoiConversionTest {
 			.convert(i, MaskPredicate.class);
 
 		assertTrue(converted == null);
+	}
+
+	// -- Unwrapping tests --
+
+	@Test
+	public void testWrapLineWithWidthConversion() {
+		final Line l = new Line(10, 10, 100, 100);
+		ij.gui.Line.setWidth(5);
+		l.setStrokeWidth(5);
+		final MaskInterval m = new DefaultRoiWrapper<>(l);
+		final Converter<?, ?> c = convertService.getHandler(m, Line.class);
+
+		assertTrue(c instanceof WrapperToLineConverter);
+
+		final Line cl = convertService.convert(m, Line.class);
+		assertEquals(Roi.LINE, cl.getType());
+		assertTrue(l == cl);
+	}
+
+	@Test
+	public void testWrapSplineFitPolygonConversion() {
+		final PolygonRoi p = new PolygonRoi(new float[] { 0, 15, 30 }, new float[] {
+			10, 25, 10 }, Roi.POLYGON);
+		p.fitSpline();
+		final MaskInterval m = new DefaultRoiWrapper<>(p);
+		final Converter<?, ?> c = convertService.getHandler(m, PolygonRoi.class);
+
+		assertTrue(c instanceof WrapperToPolygonRoiConverter);
+
+		final PolygonRoi cp = convertService.convert(m, PolygonRoi.class);
+		assertEquals(Roi.POLYGON, cp.getType());
+		assertTrue(p == cp);
+	}
+
+	@Test
+	public void testWrapRoundedCornerRectangleConversion() {
+		final Roi r = new Roi(17, -3, 10, 16, 10);
+		final MaskInterval m = new DefaultRoiWrapper<>(r);
+		final Converter<?, ?> c = convertService.getHandler(m, Roi.class);
+
+		assertTrue(c instanceof WrapperToRoiConverter);
+
+		final Roi cr = convertService.convert(m, Roi.class);
+		assertEquals(Roi.RECTANGLE, cr.getType());
+		assertTrue(r == cr);
+	}
+
+	@Test
+	public void testWrapEllipseRoiConversion() {
+		final EllipseRoi e = new EllipseRoi(10, 11, 20, 21, 0.5);
+		final MaskInterval m = new DefaultRoiWrapper<>(e);
+		final Converter<?, ?> c = convertService.getHandler(m, EllipseRoi.class);
+
+		assertTrue(c instanceof WrapperToEllipseRoiConverter);
+
+		final EllipseRoi ce = convertService.convert(m, EllipseRoi.class);
+		assertEquals(Roi.FREEROI, ce.getType());
+		assertTrue(e == ce);
+	}
+
+	@Test
+	public void testWrapRotatedRectRoiConversion() {
+		final RotatedRectRoi rrr = new RotatedRectRoi(-3.5, 27, 30.5, 61, 6);
+		final MaskInterval m = new DefaultRoiWrapper<>(rrr);
+		final Converter<?, ?> c = convertService.getHandler(m,
+			RotatedRectRoi.class);
+
+		assertTrue(c instanceof WrapperToRotatedRectRoiConverter);
+
+		final RotatedRectRoi crrr = convertService.convert(m, RotatedRectRoi.class);
+		assertEquals(Roi.FREEROI, crrr.getType());
+		assertTrue(rrr == crrr);
 	}
 }
