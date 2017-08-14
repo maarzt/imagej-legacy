@@ -171,6 +171,7 @@ Institute of Molecular Cell Biology and Genetics.</license.copyrightOwners>
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-common</artifactId>
+			<version>0.24.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
