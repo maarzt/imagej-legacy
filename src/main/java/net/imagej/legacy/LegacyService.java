@@ -62,6 +62,7 @@ import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.CommandInfo;
 import org.scijava.command.CommandService;
+import org.scijava.convert.ConvertService;
 import org.scijava.display.DisplayService;
 import org.scijava.display.event.DisplayActivatedEvent;
 import org.scijava.display.event.input.KyPressedEvent;
@@ -152,6 +153,12 @@ public final class LegacyService extends AbstractService implements
 
 	@Parameter
 	private StatusService statusService;
+
+//	@Parameter
+//	private RoiService roiService;
+
+	@Parameter
+	private ConvertService convertService;
 
 	@Parameter(required = false)
 	private AppService appService;
@@ -436,6 +443,20 @@ public final class LegacyService extends AbstractService implements
 		log.error(e);
 		if (ij1Helper != null) ij1Helper.handleException(e);
 	}
+
+//	public Roi toROI(final Object o) {
+//		if (o == null) throw new IllegalArgumentException(
+//			"Cannot convert null to Roi");
+//
+//		final Roi r = convertService.convert(o, Roi.class);
+//		if (r != null) return r;
+//
+//		final MaskPredicate<?> m = roiService.toMask(o);
+//		if (m != null) return toROI(m);
+//
+//		throw new IllegalArgumentException("Cannot convert " + o.getClass() +
+//			" to Roi");
+//	}
 
 	// -- Service methods --
 
