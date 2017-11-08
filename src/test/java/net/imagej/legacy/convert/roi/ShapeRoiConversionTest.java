@@ -33,16 +33,31 @@ package net.imagej.legacy.convert.roi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import net.imagej.legacy.convert.roi.RoiUnwrappers.WrapperToShapeRoiConverter;
 import net.imglib2.RealPoint;
+import net.imglib2.realtransform.AffineTransform2D;
+import net.imglib2.roi.RealMask;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.composite.CompositeMaskPredicate;
+import net.imglib2.roi.geom.real.Box;
+import net.imglib2.roi.geom.real.ClosedBox;
+import net.imglib2.roi.geom.real.ClosedEllipsoid;
+import net.imglib2.roi.geom.real.ClosedSphere;
+import net.imglib2.roi.geom.real.Ellipsoid;
+import net.imglib2.roi.geom.real.OpenBox;
+import net.imglib2.roi.geom.real.OpenEllipsoid;
+import net.imglib2.roi.geom.real.OpenSphere;
+import net.imglib2.roi.geom.real.Sphere;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
 import org.scijava.convert.ConvertService;
+import org.scijava.convert.Converter;
 
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
@@ -51,6 +66,8 @@ import ij.gui.ShapeRoi;
 /**
  * Tests converting an ImageJ 1.x {@link ShapeRoi} to an ImgLib2
  * {@link RealMaskRealInterval} and the corresponding {@link ShapeRoiWrapper}.
+ * This also tests converting a {@link CompositeMaskPredicate} to a
+ * {@code ShapeRoi}.
  *
  * @author Alison Walter
  */
@@ -59,6 +76,13 @@ public class ShapeRoiConversionTest {
 	private ShapeRoi shape;
 	private RealMaskRealInterval wrap;
 	private ConvertService convertService;
+
+	private Box<RealPoint> cb;
+	private Box<RealPoint> ob;
+	private Sphere<RealPoint> cs;
+	private Sphere<RealPoint> ops;
+	private Ellipsoid<RealPoint> ce;
+	private Ellipsoid<RealPoint> oe;
 
 	@Before
 	public void setup() {
@@ -72,12 +96,21 @@ public class ShapeRoiConversionTest {
 
 		final Context context = new Context(ConvertService.class);
 		convertService = context.service(ConvertService.class);
+
+		cb = new ClosedBox(new double[] { 10, 12 }, new double[] { 123, 80 });
+		ob = new OpenBox(new double[] { -9, 63 }, new double[] { 12, 92 });
+		cs = new ClosedSphere(new double[] { 53, 61 }, 5);
+		ops = new OpenSphere(new double[] { 50, 51 }, 10);
+		oe = new OpenEllipsoid(new double[] { 0, 0 }, new double[] { 3, 5 });
+		ce = new ClosedEllipsoid(new double[] { 15, 70 }, new double[] { 8.5, 1 });
 	}
 
 	@After
 	public void tearDown() {
 		convertService.context().dispose();
 	}
+
+	// -- Wrapper tests --
 
 	@Test
 	public void testShapeRoiWrapperTest() {
@@ -106,6 +139,8 @@ public class ShapeRoiConversionTest {
 		assertEquals(281, wrap.realMax(1), 0);
 	}
 
+	// -- from ShapeRoi conversion tests --
+
 	@Test
 	public void testShapeRoiToMaskRealIntervalConverter() {
 		final RealMaskRealInterval converted = convertService.convert(shape,
@@ -117,5 +152,92 @@ public class ShapeRoiConversionTest {
 		assertEquals(wrap.realMin(1), converted.realMin(1), 0);
 		assertEquals(wrap.realMax(0), converted.realMax(0), 0);
 		assertEquals(wrap.realMax(1), converted.realMax(1), 0);
+	}
+
+	// -- to ShapeRoi conversion tests --
+
+	@Test
+	public void testMaskOperationResultToShapeRoiConverterMatching() {
+		// Unwrap
+		final Converter<?, ?> unwrap = convertService.getHandler(wrap,
+			ShapeRoi.class);
+		assertTrue(unwrap instanceof WrapperToShapeRoiConverter);
+
+		// AND
+		final RealMaskRealInterval and = cb.and(cs);
+		final Converter<?, ?> andC = convertService.getHandler(and, ShapeRoi.class);
+		assertTrue(andC instanceof BinaryCompositeMaskPredicateToShapeRoiConverter);
+
+		// N-ary OR then And
+		final RealMaskRealInterval nary = ops.and(cb.or(cs).or(ce));
+		final Converter<?, ?> naryC = convertService.getHandler(nary,
+			ShapeRoi.class);
+		assertTrue(
+			naryC instanceof BinaryCompositeMaskPredicateToShapeRoiConverter);
+
+		// Not
+		final RealMask not = ops.negate();
+		final Converter<?, ?> notC = convertService.getHandler(not, ShapeRoi.class);
+		assertNull(notC);
+
+		// Rotate then OR, then AND
+		final AffineTransform2D t = new AffineTransform2D();
+		t.rotate(Math.PI / 2);
+		final RealMask rotate = oe.and(ops.or(ob.transform(t.inverse())));
+		final Converter<?, ?> rotateC = convertService.getHandler(rotate,
+			ShapeRoi.class);
+		assertNull(rotateC);
+	}
+
+	@Test
+	public void testWrappedShapeRoiToShapeRoi() {
+		final ShapeRoi s = convertService.convert(wrap, ShapeRoi.class);
+		assertTrue(s == shape);
+	}
+
+	@Test
+	public void testMaskOperationResultToShapeRoiConverterAnd() {
+		final RealMaskRealInterval and = cb.and(cs);
+		final ShapeRoi s = convertService.convert(and, ShapeRoi.class);
+
+		assertEquals(and.realMin(0), s.getXBase(), 0);
+		assertEquals(and.realMin(1), s.getYBase(), 0);
+		assertEquals(and.realMax(0), s.getXBase() + s.getFloatWidth(), 0);
+		assertEquals(and.realMax(0), s.getXBase() + s.getFloatHeight(), 0);
+
+		final RealPoint test = new RealPoint(new double[] { 53, 61 });
+		assertEquals(and.test(test), s.contains(53, 61));
+		test.setPosition(new double[] { 49, 65 });
+		assertEquals(and.test(test), s.contains(49, 65));
+	}
+
+	@Test
+	public void testMaskOperationResultToShapeRoiConverterSubtract() {
+		final RealMaskRealInterval sub = cb.and(cs).minus(ops);
+		final ShapeRoi s = convertService.convert(sub, ShapeRoi.class);
+
+		// Can't just use subtraction bounds, because subtraction just maintains
+		// the bounds of its first input
+		assertEquals(sub.realMin(0), s.getXBase(), 0);
+		assertEquals(59, s.getYBase(), 0);
+		assertEquals(sub.realMax(0), s.getXBase() + s.getFloatWidth(), 0);
+		assertEquals(sub.realMax(1), s.getYBase() + s.getFloatHeight(), 0);
+
+		final RealPoint test = new RealPoint(new double[] { 56, 64 });
+		assertEquals(sub.test(test), s.contains(56, 64));
+		test.setPosition(new double[] { 58, 62 });
+		assertEquals(sub.test(test), s.contains(58, 62));
+	}
+
+	@Test
+	public void testMaskOperationResultToShapeRoiConverterMultiple() {
+		final RealMaskRealInterval multi = cb.and(cs).or(oe.or(ce).minus(ob).or(ops
+			.xor(cb)));
+		final ShapeRoi s = convertService.convert(multi, ShapeRoi.class);
+
+		assertEquals(multi.realMin(0), s.getXBase(), 0);
+		assertEquals(multi.realMin(1), s.getYBase(), 0);
+		assertEquals(multi.realMax(0), s.getXBase() + s.getFloatWidth(), 0);
+		assertEquals(multi.realMax(1), s.getYBase() + s.getFloatHeight(), 0);
 	}
 }
