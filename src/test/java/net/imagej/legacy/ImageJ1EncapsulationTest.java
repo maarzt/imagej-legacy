@@ -100,6 +100,42 @@ public class ImageJ1EncapsulationTest {
 					className.startsWith(net.imagej.legacy.convert.ResultsTableToGenericTableConverter.class.getName()) ||
 					className.startsWith(net.imagej.legacy.convert.ResultsTableWrapper.class.getName()) ||
 					className.startsWith(net.imagej.legacy.convert.StringToImagePlusConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.AbstractMaskToRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.AbstractPolygonRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.AbstractRoiToMaskConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.AbstractRoiUnwrapConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.BinaryCompositeMaskPredicateToShapeRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.BoxToRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.DefaultRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.EllipsoidToOvalRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.IJLineToLineConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.IJRealRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.IJRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.IrregularPolylineRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.LineToIJLineConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.LineWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.OvalRoiToEllipsoidConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.OvalRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PointMaskToPointRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PointRoiToRealPointCollectionConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PointRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.Polygon2DToPolygonRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PolygonRoiToPolygon2DConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PolygonRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PolylineRoiToPolylineConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PolylineRoiToRealMaskRealIntervalConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PolylineRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.PolylineToPolylineRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.RealMaskRealIntervalToImageRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.RealPointCollectionToPointRoiConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.RoiToBoxConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.RoiToMaskIntervalConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.RoiUnwrappers.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.RoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.ShapeRoiToMaskRealIntervalConverter.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.ShapeRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.UnmodifiablePolygonRoiWrapper.class.getName()) ||
+					className.startsWith(net.imagej.legacy.convert.roi.UnmodifiablePolylineRoiWrapper.class.getName()) ||
 					className.startsWith(net.imagej.legacy.display.AbstractImagePlusDisplayViewer.class.getName()) ||
 					className.startsWith(net.imagej.legacy.display.LegacyImageDisplayService.class.getName()) ||
 					className.startsWith(net.imagej.legacy.display.LegacyImageDisplayViewer.class.getName()) ||
